@@ -1,0 +1,53 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Game index{% endblock %}
+
+{% block body %}
+    <h1 class="text-center">Die nächsten Spiele</h1>
+
+        {% for game in nextgames %}
+            <div class="card mb-4">
+                <div class="card-header border-0 pb-0 text-center">
+
+                        <p class="pb-0">{{ game.home }} : {{ game.away }}</p>
+                        <p>{{ game.homepoints }} : {{ game.awaypoints }}</p>
+                        <p class="small">{{ game.place }}</p>
+                        <p>{{ game.datetime ? game.datetime|date('d.m.Y H:i') : '' }}</p>
+                    </div>
+
+                <div class="card-footer border-0 pt-0">
+                    <a href="{{ path('app_game_show', {'id': game.id}) }}">show</a>
+                    <a href="{{ path('app_game_edit', {'id': game.id}) }}">edit</a>
+                </div>
+            </div>
+
+        {% else %}
+            <div>
+                <p>no records found</p>
+            </div>
+        {% endfor %}
+
+        {% for game in lastgames %}
+            <div class="card mb-4">
+                <div class="card-header border-0 pb-0 text-center">
+
+                    <p class="pb-0">{{ game.home }} : {{ game.away }}</p>
+                    <p>{{ game.homepoints }} : {{ game.awaypoints }}</p>
+                    <p class="small">{{ game.place }}</p>
+                    <p>{{ game.datetime ? game.datetime|date('d.m.Y H:i') : '' }}</p>
+                </div>
+
+                <div class="card-footer border-0 pt-0">
+                    <a href="{{ path('app_game_show', {'id': game.id}) }}">show</a>
+                    <a href="{{ path('app_game_edit', {'id': game.id}) }}">edit</a>
+                </div>
+            </div>
+
+        {% else %}
+            <div>
+                <p>no records found</p>
+            </div>
+        {% endfor %}
+
+    <a href="{{ path('app_game_new') }}">Create new</a>
+{% endblock %}

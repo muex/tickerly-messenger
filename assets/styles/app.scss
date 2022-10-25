@@ -1,0 +1,14 @@
+@import "~bootstrap";
+
+body {
+    background-color: #C3D9B4;
+}
+
+header {
+    background-color: #FFFFFF;
+}
+
+header.fixed-top + main {
+    padding-top: calc(1.5rem + 56px);
+    margin-bottom: 1.5rem;
+}

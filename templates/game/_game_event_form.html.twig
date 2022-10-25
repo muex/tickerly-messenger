@@ -1,0 +1,12 @@
+{{ form_start(form, {method: 'POST', action: path('app_event_new', {'game_id':game.id})}) }}
+
+<fieldset>
+    {{ form_widget(form) }}
+
+    <div class="form-group">
+        <button class="btn btn-primary pull-right" type="submit">
+            Speichern
+        </button>
+    </div>
+</fieldset>
+{{ form_end(form) }}

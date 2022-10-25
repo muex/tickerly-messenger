@@ -1,0 +1,45 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Game{% endblock %}
+
+{% block body %}
+    <div class="card mb-4">
+        <div class="card-header text-center">
+            <h1>{{ game.home }} : {{ game.away }}</h1>
+            <h2>{{ game.homepoints }} : {{ game.awaypoints }}</h2>
+            <p2 class="small">{{ game.place }}</p2>
+            <p>{{ game.datetime ? game.datetime|date('d.m.Y H:i') : '' }}</p>
+        </div>
+    </div>
+    <div class="btn-group-vertical">
+        <a class="btn btn-secondary" href="{{ path('app_game_increase_home', {'id': game.id}) }}">H+</a>
+        <a class="btn btn-secondary" href="{{ path('app_game_decrease_home', {'id': game.id}) }}">H-</a>
+    </div><div class="btn-group-vertical"><a class="btn btn-secondary" href="{{ path('app_game_increase_away', {'id': game.id}) }}">A+</a>
+        <a class="btn btn-secondary" href="{{ path('app_game_decrease_away', {'id': game.id}) }}">A-</a>
+    </div>
+
+
+    {% if app.user %}
+    {% if app.user.email == game.user.email %}
+    <div class="card mb-4">
+        <div class="card-body">
+            {{ render(controller('App\\Controller\\GameController::gameEventForm', {'id': game.id})) }}
+        </div>
+    </div>
+    {% endif %}
+    {% endif %}
+
+    {% for event in game.gameevents %}
+        <div class="card mb-2">
+            <div class="card-body">
+                {{ event.timecode }} - {{ event.message }}
+            </div>
+        </div>
+    {% endfor %}
+
+    <a href="{{ path('app_game_index') }}">back to list</a>
+
+    <a href="{{ path('app_game_edit', {'id': game.id}) }}">edit</a>
+
+
+{% endblock %}
