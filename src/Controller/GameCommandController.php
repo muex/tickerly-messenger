@@ -6,9 +6,9 @@ use App\Entity\Game;
 use App\Entity\GameEvent;
 use App\Form\GameEventType;
 use App\Form\GameType;
+use App\Game\Application\Command\CreateGame;
 use App\Game\Application\Command\DecreaseHomePoints;
 use App\Game\Application\Command\IncreaseHomePoints;
-use App\Game\CreateGame;
 use App\Repository\GameRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\EventDispatcher\EventDispatcherInterface;
@@ -44,7 +44,6 @@ class GameCommandController extends AbstractController
         }
 
         return $this->renderForm('game/new.html.twig', [
-            //'game' => $game,
             'form' => $form,
         ]);
     }
@@ -71,9 +70,7 @@ class GameCommandController extends AbstractController
     public function increaseHomePoints(Request $request, Game $game, MessageBusInterface $commandBus): Response
     {
         $id = $game->getId();
-        $increaseHomeCommand = new IncreaseHomePoints(
-            $id
-        );
+        $increaseHomeCommand = new IncreaseHomePoints($id);
         $commandBus->dispatch($increaseHomeCommand);
 
         return $this->redirectToRoute('app_game_show', ['id' => $game->getId()]);
