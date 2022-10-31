@@ -26,4 +26,12 @@ class GameQueryController extends AbstractController
             'lastgames' => $gameRepository->findLastGames(),
         ]);
     }
+
+    #[Route('/show/{id}', name: 'app_game_show', methods: ['GET'])]
+    public function show(Game $game): Response
+    {
+        return $this->render('game/show.html.twig', [
+            'game' => $game,
+        ]);
+    }
 }

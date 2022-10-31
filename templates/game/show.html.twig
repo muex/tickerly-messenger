@@ -23,7 +23,7 @@
     {% if app.user.email == game.user.email %}
     <div class="card mb-4">
         <div class="card-body">
-            {{ render(controller('App\\Controller\\GameController::gameEventForm', {'id': game.id})) }}
+            {{ render(controller('App\\Controller\\GameCommandController::gameEventForm', {'id': game.id})) }}
         </div>
     </div>
     {% endif %}

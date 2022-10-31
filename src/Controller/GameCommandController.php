@@ -7,6 +7,7 @@ use App\Entity\GameEvent;
 use App\Form\GameType;
 use App\Form\GameEventType;
 use App\Game\CreateGame;
+use App\Game\IncreaseHomePoints;
 use App\Repository\GameRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\EventDispatcher\EventDispatcherInterface;
@@ -14,30 +15,29 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Routing\Annotation\Route;
 
 class GameCommandController extends AbstractController
 {
     #[Route('/new', name: 'app_game_new', methods: ['GET', 'POST'])]
-    public function new(Request $request): Response
+    public function new(Request $request, MessageBusInterface $commandBus): Response
     {
-        //$game = new Game();
-        $user = $this->getUser();
-
         $form = $this->createForm(GameType::class);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
 
-            // gets data from form
-            //$data = $form->getData();
-            //$gameId = 'thrtehrethreth';
-            //$gameRepository->save($game, true);
+            $game = $form->getData();
 
             $gameCommand = new CreateGame(
-                $user
+                $game->getHome(),
+                $game->getAway(),
+                $game->getPlace(),
+                $game->getDatetime(),
+                $this->getUser()
             );
-            $this->handleMessage($gameCommand);
+            $commandBus->dispatch($gameCommand);
 
             return $this->redirectToRoute('app_game_index', [], Response::HTTP_SEE_OTHER);
         }
@@ -45,14 +45,6 @@ class GameCommandController extends AbstractController
         return $this->renderForm('game/new.html.twig', [
             //'game' => $game,
             'form' => $form,
-        ]);
-    }
-
-    #[Route('/show/{id}', name: 'app_game_show', methods: ['GET'])]
-    public function show(Game $game): Response
-    {
-        return $this->render('game/show.html.twig', [
-            'game' => $game,
         ]);
     }
 
@@ -75,14 +67,19 @@ class GameCommandController extends AbstractController
     }
 
     #[Route('/{id}/increasehome', name: 'app_game_increase_home', methods: ['GET', 'POST'])]
-    public function increaseHomePoints(Request $request, Game $game, GameRepository $gameRepository, EntityManagerInterface $entityManager): Response
+    public function increaseHomePoints(Request $request, Game $game, GameRepository $gameRepository, EntityManagerInterface $entityManager, MessageBusInterface $commandBus): Response
     {
-        $homePoints = $game->getHomepoints();
+        $id = $game->getId();
+        $increaseHomeCommand = new IncreaseHomePoints(
+            $id
+        );
+        $commandBus->dispatch($increaseHomeCommand);
+        /*$homePoints = $game->getHomepoints();
         $game->setHomepoints(++$homePoints);
 
         $entityManager->persist($game);
         $entityManager->flush();
-
+*/
         return $this->redirectToRoute('app_game_show', ['id' => $game->getId()]);
     }
 
