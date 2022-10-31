@@ -7,7 +7,10 @@ use App\Entity\GameEvent;
 use App\Form\GameEventType;
 use App\Form\GameType;
 use App\Game\Application\Command\CreateGame;
+use App\Game\Application\Command\DecreaseAwayPoints;
 use App\Game\Application\Command\DecreaseHomePoints;
+use App\Game\Application\Command\DeleteGame;
+use App\Game\Application\Command\IncreaseAwayPoints;
 use App\Game\Application\Command\IncreaseHomePoints;
 use App\Repository\GameRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -80,44 +83,36 @@ class GameCommandController extends AbstractController
     public function decreaseHomePoints(Request $request, Game $game, MessageBusInterface $commandBus): Response
     {
         $id = $game->getId();
-        $increaseHomeCommand = new DecreaseHomePoints(
-            $id
-        );
+        $increaseHomeCommand = new DecreaseHomePoints($id);
         $commandBus->dispatch($increaseHomeCommand);
 
         return $this->redirectToRoute('app_game_show', ['id' => $game->getId()]);
     }
 
     #[Route('/{id}/increaseaway', name: 'app_game_increase_away', methods: ['GET', 'POST'])]
-    public function increaseAwayPoints(Request $request, Game $game, GameRepository $gameRepository, EntityManagerInterface $entityManager): Response
+    public function increaseAwayPoints(Request $request, Game $game, MessageBusInterface $commandBus): Response
     {
-        $awayPoints = $game->getAwaypoints();
-        $game->setAwaypoints(++$awayPoints);
-
-        $entityManager->persist($game);
-        $entityManager->flush();
+        $id = $game->getId();
+        $increaseAwayCommand = new IncreaseAwayPoints($id);
+        $commandBus->dispatch($increaseAwayCommand);
 
         return $this->redirectToRoute('app_game_show', ['id' => $game->getId()]);
     }
 
     #[Route('/{id}/decreaseaway', name: 'app_game_decrease_away', methods: ['GET', 'POST'])]
-    public function decreaseAwayPoints(Request $request, Game $game, GameRepository $gameRepository, EntityManagerInterface $entityManager): Response
+    public function decreaseAwayPoints(Request $request, Game $game, MessageBusInterface $commandBus): Response
     {
-        $awayPoints = $game->getAwaypoints();
-        $game->setAwaypoints(--$awayPoints);
-
-        $entityManager->persist($game);
-        $entityManager->flush();
+        $decreaseAwayCommand = new DecreaseAwayPoints($game->getId());
+        $commandBus->dispatch($decreaseAwayCommand);
 
         return $this->redirectToRoute('app_game_show', ['id' => $game->getId()]);
     }
 
     #[Route('/delete/{id}', name: 'app_game_delete', methods: ['POST'])]
-    public function delete(Request $request, Game $game, GameRepository $gameRepository): Response
+    public function delete(Request $request, Game $game, MessageBusInterface $commandBus): Response
     {
-        if ($this->isCsrfTokenValid('delete'.$game->getId(), $request->request->get('_token'))) {
-            $gameRepository->remove($game, true);
-        }
+        $deleteGameCommand = new DeleteGame($game->getId());
+        $commandBus->dispatch($deleteGameCommand);
 
         return $this->redirectToRoute('app_game_index', [], Response::HTTP_SEE_OTHER);
     }
