@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Game;
+namespace App\Game\Application\Command;
 
 class IncreaseHomePoints
 {

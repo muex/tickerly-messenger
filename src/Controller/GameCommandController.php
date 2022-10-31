@@ -4,10 +4,11 @@ namespace App\Controller;
 
 use App\Entity\Game;
 use App\Entity\GameEvent;
-use App\Form\GameType;
 use App\Form\GameEventType;
+use App\Form\GameType;
+use App\Game\Application\Command\DecreaseHomePoints;
+use App\Game\Application\Command\IncreaseHomePoints;
 use App\Game\CreateGame;
-use App\Game\IncreaseHomePoints;
 use App\Repository\GameRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\EventDispatcher\EventDispatcherInterface;
@@ -67,30 +68,25 @@ class GameCommandController extends AbstractController
     }
 
     #[Route('/{id}/increasehome', name: 'app_game_increase_home', methods: ['GET', 'POST'])]
-    public function increaseHomePoints(Request $request, Game $game, GameRepository $gameRepository, EntityManagerInterface $entityManager, MessageBusInterface $commandBus): Response
+    public function increaseHomePoints(Request $request, Game $game, MessageBusInterface $commandBus): Response
     {
         $id = $game->getId();
         $increaseHomeCommand = new IncreaseHomePoints(
             $id
         );
         $commandBus->dispatch($increaseHomeCommand);
-        /*$homePoints = $game->getHomepoints();
-        $game->setHomepoints(++$homePoints);
 
-        $entityManager->persist($game);
-        $entityManager->flush();
-*/
         return $this->redirectToRoute('app_game_show', ['id' => $game->getId()]);
     }
 
     #[Route('/{id}/decreasehome', name: 'app_game_decrease_home', methods: ['GET', 'POST'])]
-    public function decreaseHomePoints(Request $request, Game $game, GameRepository $gameRepository, EntityManagerInterface $entityManager): Response
+    public function decreaseHomePoints(Request $request, Game $game, MessageBusInterface $commandBus): Response
     {
-        $homePoints = $game->getHomepoints();
-        $game->setHomepoints(--$homePoints);
-
-        $entityManager->persist($game);
-        $entityManager->flush();
+        $id = $game->getId();
+        $increaseHomeCommand = new DecreaseHomePoints(
+            $id
+        );
+        $commandBus->dispatch($increaseHomeCommand);
 
         return $this->redirectToRoute('app_game_show', ['id' => $game->getId()]);
     }
