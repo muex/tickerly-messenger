@@ -3,8 +3,9 @@
 namespace App\Game\Application\Command;
 
 use App\Entity\User;
+use App\Shared\Domain\Command;
 
-final class CreateGame
+final class CreateGame implements Command
 {
     private $home;
     private $away;

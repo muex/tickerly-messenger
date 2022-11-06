@@ -3,17 +3,19 @@
 namespace App\Game\Application\Command;
 
 use App\Entity\Game;
+use App\Game\Application\Event\GameCreated;
 use App\Repository\GameRepository;
+use App\Shared\Domain\EventBus;
 use Symfony\Component\Messenger\Handler\MessageHandlerInterface;
-use Symfony\Component\Messenger\MessageBusInterface;
 
 class CreateGameHandler implements MessageHandlerInterface
 {
-    public function __construct(GameRepository $gameRepository){
+    public function __construct(GameRepository $gameRepository, EventBus $eventBus){
         $this->gameRepository = $gameRepository;
+        $this->eventBus = $eventBus;
     }
 
-    public function __invoke(CreateGame $game, MessageBusInterface $eventBus)
+    public function __invoke(CreateGame $game)
     {
         $newGame = new Game();
         $newGame->setUser($game->getUser());
@@ -27,6 +29,6 @@ class CreateGameHandler implements MessageHandlerInterface
 
         // Dispatch an event message on an event bus
         // create json file with uuid and update gamelist json
-        //$this->eventBus->dispatch(new GameCreatedEvent($newGame));
+        $this->eventBus->dispatch(new GameCreated());
     }
 }

@@ -12,6 +12,7 @@ use App\Game\Application\Command\DecreaseHomePoints;
 use App\Game\Application\Command\DeleteGame;
 use App\Game\Application\Command\IncreaseAwayPoints;
 use App\Game\Application\Command\IncreaseHomePoints;
+use App\Game\Infrastructure\CommandBus;
 use App\Repository\GameRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\EventDispatcher\EventDispatcherInterface;
@@ -25,7 +26,7 @@ use Symfony\Component\Routing\Annotation\Route;
 class GameCommandController extends AbstractController
 {
     #[Route('/new', name: 'app_game_new', methods: ['GET', 'POST'])]
-    public function new(Request $request, MessageBusInterface $commandBus): Response
+    public function new(Request $request, CommandBus $commandBus): Response
     {
         $form = $this->createForm(GameType::class);
         $form->handleRequest($request);
