@@ -16,6 +16,5 @@ class DeleteGameHandler implements MessageHandlerInterface
     {
         $game = $this->gameRepository->find($deleteGame->getGameId());
         $this->gameRepository->remove($game, true);
-
     }
 }
