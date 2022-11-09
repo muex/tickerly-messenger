@@ -14,12 +14,48 @@ class GameCreatedHandler implements MessageHandlerInterface
 
     public function __invoke(GameCreated $event): void
     {
-        $games = array();
-        $gamesCollection = $this->gameRepository->findAll();
+        $nextGames = array();
+        $gamesCollection = $this->gameRepository->findNextGames();
 
         foreach ($gamesCollection as $game)
         {
-            $games[] = array(
+            $nextGames[] = array(
+                'id' => $game->getId(),
+                'home' => $game->getHome(),
+                'away' => $game->getAway(),
+                'location' => $game->getLocation(),
+                'datetime' => $game->getDatetime(),
+                'homepoints' => $game->getHomepoints(),
+                'awaypoints' => $game->getAwaypoints()
+            );
+        }
+
+        file_put_contents('nextgames.json', json_encode($nextGames));
+
+        $lastGames = array();
+        $gamesCollection = $this->gameRepository->findLastGames();
+
+        foreach ($gamesCollection as $game)
+        {
+            $lastGames[] = array(
+                'id' => $game->getId(),
+                'home' => $game->getHome(),
+                'away' => $game->getAway(),
+                'location' => $game->getLocation(),
+                'datetime' => $game->getDatetime(),
+                'homepoints' => $game->getHomepoints(),
+                'awaypoints' => $game->getAwaypoints()
+            );
+        }
+
+        file_put_contents('lastgames.json', json_encode($lastGames));
+/*
+        $nextGames = array();
+        $gamesCollection = $this->gameRepository->findNextGames();
+
+        foreach ($gamesCollection as $game)
+        {
+            $nextGames[] = array(
                 'id' => $game->getId(),
                 'home' => $game->getHome(),
                 'away' => $game->getAway(),
@@ -27,7 +63,8 @@ class GameCreatedHandler implements MessageHandlerInterface
                 'datetime' => $game->getDatetime()
             );
         }
-        //$games = array('a' => 1, 'b' => 2, 'c' => 3, 'd' => 4, 'e' => 5);
-        file_put_contents('gamelist.json', json_encode($games));
+
+        file_put_contents('nextgames.json', json_encode($nextGames));
+*/
     }
 }
