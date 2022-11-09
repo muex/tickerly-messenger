@@ -38,7 +38,7 @@ class GameCommandController extends AbstractController
             $gameCommand = new CreateGame(
                 $game->getHome(),
                 $game->getAway(),
-                $game->getPlace(),
+                $game->getLocation(),
                 $game->getDatetime(),
                 $this->getUser()
             );

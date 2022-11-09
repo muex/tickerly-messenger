@@ -2,7 +2,9 @@
 
 namespace App\Game\Application\Command;
 
-class DeleteGame
+use App\Shared\Domain\Command;
+
+class DeleteGame implements Command
 {
     private $gameId;
 

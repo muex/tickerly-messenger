@@ -2,7 +2,9 @@
 
 namespace App\Game\Application\Command;
 
-class DecreaseHomePoints
+use App\Shared\Domain\Command;
+
+class DecreaseHomePoints implements Command
 {
     private $gameId;
 

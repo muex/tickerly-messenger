@@ -2,7 +2,9 @@
 
 namespace App\Game\Application\Command;
 
-class IncreaseAwayPoints
+use App\Shared\Domain\Command;
+
+class IncreaseAwayPoints implements Command
 {
     private $gameId;
 

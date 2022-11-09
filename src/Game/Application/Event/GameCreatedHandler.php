@@ -23,7 +23,7 @@ class GameCreatedHandler implements MessageHandlerInterface
                 'id' => $game->getId(),
                 'home' => $game->getHome(),
                 'away' => $game->getAway(),
-                'place' => $game->getPlace(),
+                'location' => $game->getLocation(),
                 'datetime' => $game->getDatetime()
             );
         }

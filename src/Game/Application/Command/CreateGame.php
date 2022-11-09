@@ -9,16 +9,16 @@ final class CreateGame implements Command
 {
     private $home;
     private $away;
-    private $place;
+    private $location;
     private $datetime;
-    private $user;
+    private $owner;
 
-    public function __construct(string $home, string $away, string $place, \DateTime $dateTime, User $user){
+    public function __construct(string $home, string $away, string $location, \DateTime $dateTime, User $owner){
         $this->home = $home;
         $this->away = $away;
-        $this->place = $place;
+        $this->location = $location;
         $this->datetime = $dateTime;
-        $this->user = $user;
+        $this->owner = $owner;
     }
 
     public function getHome(): string
@@ -31,9 +31,9 @@ final class CreateGame implements Command
         return $this->away;
     }
 
-    public function getPlace(): string
+    public function getLocation(): string
     {
-        return $this->place;
+        return $this->location;
     }
 
     public function getDatetime(): \DateTime
@@ -41,10 +41,8 @@ final class CreateGame implements Command
         return $this->datetime;
     }
 
-    public function getUser(): User
+    public function getOwner(): User
     {
-        return $this->user;
+        return $this->owner;
     }
-
-
 }

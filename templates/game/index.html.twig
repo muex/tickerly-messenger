@@ -5,56 +5,49 @@
 {% block body %}
     <h1 class="text-center">Die nächsten Spiele</h1>
 
-        {% for game in nextgames %}
-            <div class="card mb-4">
-                <div class="card-header border-0 pb-0 text-center">
+    {% for game in nextgames %}
+        <div class="card mb-4">
+            <div class="card-header border-0 pb-0 text-center">
 
-                        <p class="pb-0">{{ game.home }} : {{ game.away }}</p>
-                        <p>{{ game.homepoints }} : {{ game.awaypoints }}</p>
-                        <p class="small">{{ game.place }}</p>
-                        <p>{{ game.datetime ? game.datetime|date('d.m.Y H:i') : '' }}</p>
-                    </div>
-
-                <div class="card-footer border-0 pt-0">
-                    <a href="{{ path('app_game_show', {'id': game.id}) }}">show</a>
-                    <a href="{{ path('app_game_edit', {'id': game.id}) }}">edit</a>
-                </div>
+                <p class="pb-0">{{ game.home }} : {{ game.away }}</p>
+                <p>{{ game.homepoints }} : {{ game.awaypoints }}</p>
+                <p class="small">{{ game.location }}</p>
+                <p>{{ game.datetime ? game.datetime|date('d.m.Y H:i') : '' }}</p>
             </div>
 
-        {% else %}
-            <div>
-                <p>no records found</p>
+            <div class="card-footer border-0 pt-0 text-center">
+                <a class="btn btn-secondary" href="{{ path('app_game_show', {'id': game.id}) }}">Zum Spiel</a>
             </div>
-        {% endfor %}
+        </div>
 
-        {% for game in lastgames %}
-            <div class="card mb-4">
-                <div class="card-header border-0 pb-0 text-center">
+    {% else %}
+        <div>
+            <p>no records found</p>
+        </div>
+    {% endfor %}
+    <h2 class="text-center">Die letzten Spiele</h2>
+    {% for game in lastgames %}
 
-                    <p class="pb-0">{{ game.home }} : {{ game.away }}</p>
-                    <p>{{ game.homepoints }} : {{ game.awaypoints }}</p>
-                    <p class="small">{{ game.place }}</p>
-                    <p>{{ game.datetime ? game.datetime|date('d.m.Y H:i') : '' }}</p>
-                </div>
+        <div class="card mb-4">
+            <div class="card-header border-0 pb-0 text-center">
 
-                <div class="card-footer border-0 pt-0">
-                    <a href="{{ path('app_game_show', {'id': game.id}) }}">show</a>
-                    <a href="{{ path('app_game_edit', {'id': game.id}) }}">edit</a>
-                </div>
+                <p class="pb-0">{{ game.home }} : {{ game.away }}</p>
+                <p>{{ game.homepoints }} : {{ game.awaypoints }}</p>
+                <p class="small">{{ game.location }}</p>
+                <p>{{ game.datetime ? game.datetime|date('d.m.Y H:i') : '' }}</p>
             </div>
 
-        {% else %}
-            <div>
-                <p>no records found</p>
+            <div class="card-footer border-0 pt-0 text-center">
+                <a class="btn btn-secondary" href="{{ path('app_game_show', {'id': game.id}) }}">Zum Spiel</a>
             </div>
-        {% endfor %}
+        </div>
 
-    <a href="{{ path('app_game_new') }}">Create new</a>
-    <script>
-        var request = new XMLHttpRequest();
-        request.open("GET", "gamelist.json", false);
-        request.send(null)
-        var my_JSON_object = JSON.parse(request.responseText);
-        console.log (my_JSON_object);
-    </script>
+    {% else %}
+        <div>
+            <p>no records found</p>
+        </div>
+    {% endfor %}
+    {% if is_granted('ROLE_USER') %}
+        <a class="btn btn-secondary" href="{{ path('app_game_new') }}">Neues Spiel erstellen</a>
+    {% endif %}
 {% endblock %}

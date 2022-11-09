@@ -12,12 +12,10 @@ class GameType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
-            ->add('place')
+            ->add('location')
             ->add('home')
             ->add('away')
             ->add('datetime')
-            ->add('homepoints')
-            ->add('awaypoints')
         ;
     }
 

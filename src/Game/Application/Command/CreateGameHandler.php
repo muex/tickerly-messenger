@@ -18,17 +18,15 @@ class CreateGameHandler implements MessageHandlerInterface
     public function __invoke(CreateGame $game)
     {
         $newGame = new Game();
-        $newGame->setUser($game->getUser());
+        $newGame->setOwner($game->getOwner());
         $newGame->setHome($game->getHome());
         $newGame->setAway($game->getAway());
-        $newGame->setPlace($game->getPlace());
+        $newGame->setLocation($game->getLocation());
         $newGame->setDatetime($game->getDatetime());
-        $newGame->setUser($game->getUser());
+        $newGame->setOwner($game->getOwner());
 
         $this->gameRepository->save($newGame, true);
 
-        // Dispatch an event message on an event bus
-        // create json file with uuid and update gamelist json
         $this->eventBus->dispatch(new GameCreated());
     }
 }

@@ -2,7 +2,9 @@
 
 namespace App\Game\Application\Command;
 
-class IncreaseHomePoints
+use App\Shared\Domain\Command;
+
+class IncreaseHomePoints implements Command
 {
     private $gameId;
 

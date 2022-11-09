@@ -6,21 +6,35 @@
     <div class="card mb-4">
         <div class="card-header text-center">
             <h1>{{ game.home }} : {{ game.away }}</h1>
-            <h2>{{ game.homepoints }} : {{ game.awaypoints }}</h2>
-            <p2 class="small">{{ game.place }}</p2>
+            <div class="d-flex justify-content-center">
+                {% if app.user %}
+                    {% if app.user.email == game.owner.email %}
+                        <div class="btn-group-vertical btn-group-sm me-3">
+                            <a class="btn btn-secondary" href="{{ path('app_game_increase_home', {'id': game.id}) }}">H+</a>
+                            <a class="btn btn-secondary" href="{{ path('app_game_decrease_home', {'id': game.id}) }}">H-</a>
+                        </div>
+                    {% endif %}
+                {% endif %}
+                <h2 style="font-size: 3rem">{{ game.homepoints }} : {{ game.awaypoints }}</h2>
+                {% if app.user %}
+                    {% if app.user.email == game.owner.email %}
+                        <div class="btn-group-vertical btn-group-sm ms-3">
+                            <a class="btn btn-secondary" href="{{ path('app_game_increase_away', {'id': game.id}) }}">A+</a>
+                            <a class="btn btn-secondary" href="{{ path('app_game_decrease_away', {'id': game.id}) }}">A-</a>
+                        </div>
+                    {% endif %}
+                {% endif %}
+            </div>
+
+            <p2 class="small">{{ game.location }}</p2>
             <p>{{ game.datetime ? game.datetime|date('d.m.Y H:i') : '' }}</p>
         </div>
     </div>
-    <div class="btn-group-vertical">
-        <a class="btn btn-secondary" href="{{ path('app_game_increase_home', {'id': game.id}) }}">H+</a>
-        <a class="btn btn-secondary" href="{{ path('app_game_decrease_home', {'id': game.id}) }}">H-</a>
-    </div><div class="btn-group-vertical"><a class="btn btn-secondary" href="{{ path('app_game_increase_away', {'id': game.id}) }}">A+</a>
-        <a class="btn btn-secondary" href="{{ path('app_game_decrease_away', {'id': game.id}) }}">A-</a>
-    </div>
 
+    <button class="btn btn-secondary mb-3" onclick="window.location.reload();">Aktualisieren</button>
 
     {% if app.user %}
-    {% if app.user.email == game.user.email %}
+    {% if app.user.email == game.owner.email %}
     <div class="card mb-4">
         <div class="card-body">
             {{ render(controller('App\\Controller\\GameCommandController::gameEventForm', {'id': game.id})) }}
@@ -37,9 +51,13 @@
         </div>
     {% endfor %}
 
-    <a href="{{ path('app_game_index') }}">back to list</a>
+    <a class="btn btn-secondary" href="{{ path('app_game_index') }}">Zurück</a>
 
-    <a href="{{ path('app_game_edit', {'id': game.id}) }}">edit</a>
+    {% if app.user %}
+        {% if app.user.email == game.owner.email %}
+            <a class="btn btn-secondary" href="{{ path('app_game_edit', {'id': game.id}) }}">Bearbeiten</a>
 
+        {% endif %}
+    {% endif %}
 
 {% endblock %}
