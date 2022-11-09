@@ -29,10 +29,10 @@ class Game
     private ?\DateTimeInterface $datetime = null;
 
     #[ORM\Column(nullable: true)]
-    private ?int $homepoints = null;
+    private ?int $homepoints =0;
 
     #[ORM\Column(nullable: true)]
-    private ?int $awaypoints = null;
+    private ?int $awaypoints = 0;
 
     #[ORM\OneToMany(mappedBy: 'game', targetEntity: GameEvent::class)]
     #[ORM\OrderBy(["timecode" => 'DESC'])]

@@ -32,7 +32,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column]
     private ?string $password = null;
 
-    #[ORM\OneToMany(mappedBy: 'user', targetEntity: Game::class)]
+    #[ORM\OneToMany(mappedBy: 'owner', targetEntity: Game::class)]
     private Collection $games;
 
     public function __construct()

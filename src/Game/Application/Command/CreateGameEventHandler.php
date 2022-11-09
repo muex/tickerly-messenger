@@ -3,30 +3,32 @@
 namespace App\Game\Application\Command;
 
 use App\Entity\Game;
+use App\Entity\GameEvent;
 use App\Game\Application\Event\GameCreated;
 use App\Repository\GameRepository;
 use App\Shared\Domain\EventBus;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Messenger\Handler\MessageHandlerInterface;
 
-class CreateGameEventHandler implements MessageHandlerInterface
+final class CreateGameEventHandler implements MessageHandlerInterface
 {
-    public function __construct(GameRepository $gameRepository, EventBus $eventBus){
+    public function __construct(GameRepository $gameRepository, EventBus $eventBus, EntityManagerInterface $entityManager){
         $this->gameRepository = $gameRepository;
         $this->eventBus = $eventBus;
+        $this->entityManager = $entityManager;
     }
 
-    public function __invoke(CreateGameEvent $game)
+    public function __invoke(CreateGameEvent $gameevent)
     {
-        $newGame = new Game();
-        $newGame->setOwner($game->getOwner());
-        $newGame->setHome($game->getHome());
-        $newGame->setAway($game->getAway());
-        $newGame->setLocation($game->getLocation());
-        $newGame->setDatetime($game->getDatetime());
-        $newGame->setOwner($game->getOwner());
+        $newGameevent = new GameEvent();
+        $newGameevent->setGame($gameevent->getGame());
+        $newGameevent->setTimecode($gameevent->getTimecode());
+        $newGameevent->setMessage($gameevent->getMessage());
+        $game = $gameevent->getGame();
+        $game->addGameEvent($newGameevent);
 
-        $this->gameRepository->save($newGame, true);
-
-        $this->eventBus->dispatch(new GameCreated());
+        $this->entityManager->persist($newGameevent);
+        $this->entityManager->flush();
+        //$this->eventBus->dispatch(new GameEventCreated());
     }
 }

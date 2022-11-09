@@ -14,10 +14,7 @@ class GameQueryController extends AbstractController
     #[Route('/', name: 'app_game_index', methods: ['GET'])]
     public function index(GameRepository $gameRepository): Response
     {
-        return $this->render('game/index.html.twig', [
-            'nextgames' => $gameRepository->findNextGames(),
-            'lastgames' => $gameRepository->findLastGames(),
-        ]);
+        return $this->render('game/index.html.twig');
     }
 
     #[Route('/show/{id}', name: 'app_game_show', methods: ['GET'])]

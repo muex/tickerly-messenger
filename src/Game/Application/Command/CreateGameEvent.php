@@ -2,47 +2,33 @@
 
 namespace App\Game\Application\Command;
 
-use App\Entity\User;
+use App\Entity\Game;
 use App\Shared\Domain\Command;
 
 final class CreateGameEvent implements Command
 {
-    private $home;
-    private $away;
-    private $location;
-    private $datetime;
-    private $owner;
+    private $game;
+    private $timecode;
+    private $message;
 
-    public function __construct(string $home, string $away, string $location, \DateTime $dateTime, User $owner){
-        $this->home = $home;
-        $this->away = $away;
-        $this->location = $location;
-        $this->datetime = $dateTime;
-        $this->owner = $owner;
+    public function __construct(Game $game, string $timecode, string $message){
+        $this->game = $game;
+        $this->timecode = $timecode;
+        $this->message = $message;
     }
 
-    public function getHome(): string
+    public function getGame(): Game
     {
-        return $this->home;
+        return $this->game;
     }
 
-    public function getAway(): string
+    public function getTimecode(): string
     {
-        return $this->away;
+        return $this->timecode;
     }
 
-    public function getLocation(): string
+    public function getMessage(): string
     {
-        return $this->location;
-    }
-
-    public function getDatetime(): \DateTime
-    {
-        return $this->datetime;
-    }
-
-    public function getOwner(): User
-    {
-        return $this->owner;
+        return $this->message;
     }
 }

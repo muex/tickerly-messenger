@@ -3,10 +3,10 @@
 namespace App\Controller;
 
 use App\Entity\Game;
-use App\Entity\GameEvent;
 use App\Form\GameEventType;
 use App\Form\GameType;
 use App\Game\Application\Command\CreateGame;
+use App\Game\Application\Command\CreateGameEvent;
 use App\Game\Application\Command\DecreaseAwayPoints;
 use App\Game\Application\Command\DecreaseHomePoints;
 use App\Game\Application\Command\DeleteGame;
@@ -14,8 +14,6 @@ use App\Game\Application\Command\IncreaseAwayPoints;
 use App\Game\Application\Command\IncreaseHomePoints;
 use App\Game\Infrastructure\CommandBus;
 use App\Repository\GameRepository;
-use Doctrine\ORM\EntityManagerInterface;
-use Psr\EventDispatcher\EventDispatcherInterface;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -120,17 +118,21 @@ class GameCommandController extends AbstractController
 
     #[Route('/{game_id}/newevent', name: 'app_event_new', methods: ['POST'])]
     #[ParamConverter('game', options: ['mapping' => ['game_id' => 'id']])]
-    public function gameEventNew(Request $request, Game $game, EventDispatcherInterface $eventDispatcher, EntityManagerInterface $entityManager): Response
+    public function gameEventNew(Request $request, Game $game, CommandBus $commandBus): Response
     {
-        $gameEvent = new GameEvent();
-        $game->addGameEvent($gameEvent);
-
-        $form = $this->createForm(GameEventType::class, $gameEvent);
+        $form = $this->createForm(GameEventType::class);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $entityManager->persist($gameEvent);
-            $entityManager->flush();
+            $gameevent = $form->getData();
+
+            $gameEventCommand = new CreateGameEvent(
+                $game,
+                $gameevent->getTimecode(),
+                $gameevent->getMessage(),
+
+            );
+            $commandBus->dispatch($gameEventCommand);
 
             return $this->redirectToRoute('app_game_show', ['id' => $game->getId()]);
         }

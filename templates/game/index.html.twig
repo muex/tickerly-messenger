@@ -5,49 +5,71 @@
 {% block body %}
     <h1 class="text-center">Die nächsten Spiele</h1>
 
-    {% for game in nextgames %}
-        <div class="card mb-4">
-            <div class="card-header border-0 pb-0 text-center">
+    <div id="next-games"></div>
 
-                <p class="pb-0">{{ game.home }} : {{ game.away }}</p>
-                <p>{{ game.homepoints }} : {{ game.awaypoints }}</p>
-                <p class="small">{{ game.location }}</p>
-                <p>{{ game.datetime ? game.datetime|date('d.m.Y H:i') : '' }}</p>
-            </div>
-
-            <div class="card-footer border-0 pt-0 text-center">
-                <a class="btn btn-secondary" href="{{ path('app_game_show', {'id': game.id}) }}">Zum Spiel</a>
-            </div>
-        </div>
-
-    {% else %}
-        <div>
-            <p>no records found</p>
-        </div>
-    {% endfor %}
     <h2 class="text-center">Die letzten Spiele</h2>
-    {% for game in lastgames %}
 
-        <div class="card mb-4">
-            <div class="card-header border-0 pb-0 text-center">
+    <div id="last-games"></div>
 
-                <p class="pb-0">{{ game.home }} : {{ game.away }}</p>
-                <p>{{ game.homepoints }} : {{ game.awaypoints }}</p>
-                <p class="small">{{ game.location }}</p>
-                <p>{{ game.datetime ? game.datetime|date('d.m.Y H:i') : '' }}</p>
-            </div>
-
-            <div class="card-footer border-0 pt-0 text-center">
-                <a class="btn btn-secondary" href="{{ path('app_game_show', {'id': game.id}) }}">Zum Spiel</a>
-            </div>
-        </div>
-
-    {% else %}
-        <div>
-            <p>no records found</p>
-        </div>
-    {% endfor %}
     {% if is_granted('ROLE_USER') %}
-        <a class="btn btn-secondary" href="{{ path('app_game_new') }}">Neues Spiel erstellen</a>
-    {% endif %}
+        <a class="btn btn-secondary" href="{{ path('app_game_new') }}">Neues Spiel erstellen</a> {% endif %}
+{% endblock %}
+
+{% block scripts %}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.3/moment-with-locales.min.js"
+            integrity="sha512-vFABRuf5oGUaztndx4KoAEUVQnOvAIFs59y4tO0DILGWhQiFnFHiR+ZJfxLDyJlXgeut9Z07Svuvm+1Jv89w5g=="  crossorigin="anonymous" referrerpolicy="no-referrer"> </script>
+    <script>
+        fetch("nextgames.json")
+            .then(function(response){
+                return response.json();
+            })
+            .then(function(games){
+                let placeholder = document.querySelector("#next-games");
+                let outputnextgames = "";
+                for(let game of games){
+                    let dt = new Date(game.datetime.date);
+
+                    outputnextgames += `
+                <div class="card mb-4">
+                    <div class="card-header border-0 pb-0 text-center">
+                        <p class="pb-0">${game.home} : ${game.away}</p>
+                        <p>${game.homepoints} : ${game.awaypoints}</p>
+                        <p class="small">${game.location}</p>
+                        <p>${dt.toLocaleDateString()} ${dt.toLocaleTimeString()}</p>
+                    </div>
+
+                    <div class="card-footer border-0 pt-0 text-center">
+                        <a class="btn btn-secondary" href="/show/${game.id}">Zum Spiel</a>
+                    </div>
+                </div>`;
+                }
+                placeholder.innerHTML = outputnextgames;
+            });
+        fetch("lastgames.json")
+            .then(function(response){
+                return response.json();
+            })
+            .then(function(games){
+                let placeholder = document.querySelector("#last-games");
+                let outputlastgames = "";
+                for(let game of games){
+                    let dt = new Date(game.datetime.date);
+
+                    outputlastgames += `
+                <div class="card mb-4">
+                    <div class="card-header border-0 pb-0 text-center">
+                        <p class="pb-0">${game.home} : ${game.away}</p>
+                        <p>${game.homepoints} : ${game.awaypoints}</p>
+                        <p class="small">${game.location}</p>
+                        <p>${dt.toLocaleDateString()} ${dt.toLocaleTimeString()}</p>
+                    </div>
+
+                    <div class="card-footer border-0 pt-0 text-center">
+                        <a class="btn btn-secondary" href="/show/${game.id}">Zum Spiel</a>
+                    </div>
+                </div>`;
+                }
+                placeholder.innerHTML = outputlastgames;
+            });
+    </script>
 {% endblock %}
