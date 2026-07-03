@@ -1,63 +1,55 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Game{% endblock %}
+{% block title %}{{ game.home }} : {{ game.away }}{% endblock %}
+
+{% set btn = 'inline-flex items-center justify-center rounded-md bg-slate-700 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800' %}
+{% set is_owner = app.user and app.user.email == game.owner.email %}
 
 {% block body %}
-    <div class="card mb-4">
-        <div class="card-header text-center">
-            <h1>{{ game.home }} : {{ game.away }}</h1>
-            <div class="d-flex justify-content-center">
-                {% if app.user %}
-                    {% if app.user.email == game.owner.email %}
-                        <div class="btn-group-vertical btn-group-sm me-3">
-                            <a class="btn btn-secondary" href="{{ path('app_game_increase_home', {'id': game.id}) }}">H+</a>
-                            <a class="btn btn-secondary" href="{{ path('app_game_decrease_home', {'id': game.id}) }}">H-</a>
-                        </div>
-                    {% endif %}
-                {% endif %}
-                <h2 style="font-size: 3rem">{{ game.homepoints }} : {{ game.awaypoints }}</h2>
-                {% if app.user %}
-                    {% if app.user.email == game.owner.email %}
-                        <div class="btn-group-vertical btn-group-sm ms-3">
-                            <a class="btn btn-secondary" href="{{ path('app_game_increase_away', {'id': game.id}) }}">A+</a>
-                            <a class="btn btn-secondary" href="{{ path('app_game_decrease_away', {'id': game.id}) }}">A-</a>
-                        </div>
-                    {% endif %}
-                {% endif %}
-            </div>
+    <div class="mb-6 rounded-lg bg-white p-6 text-center shadow">
+        <h1 class="text-xl font-semibold text-slate-800">{{ game.home }} : {{ game.away }}</h1>
 
-            <p2 class="small">{{ game.location }}</p2>
-            <p>{{ game.datetime ? game.datetime|date('d.m.Y H:i') : '' }}</p>
+        <div class="mt-4 flex items-center justify-center gap-4">
+            {% if is_owner %}
+                <div class="flex flex-col gap-1">
+                    <a class="rounded-md bg-slate-600 px-3 py-1 text-sm text-white hover:bg-slate-700" href="{{ path('app_game_increase_home', {'id': game.id}) }}">H+</a>
+                    <a class="rounded-md bg-slate-600 px-3 py-1 text-sm text-white hover:bg-slate-700" href="{{ path('app_game_decrease_home', {'id': game.id}) }}">H-</a>
+                </div>
+            {% endif %}
+            <span class="text-5xl font-bold text-slate-900">{{ game.homepoints }} : {{ game.awaypoints }}</span>
+            {% if is_owner %}
+                <div class="flex flex-col gap-1">
+                    <a class="rounded-md bg-slate-600 px-3 py-1 text-sm text-white hover:bg-slate-700" href="{{ path('app_game_increase_away', {'id': game.id}) }}">A+</a>
+                    <a class="rounded-md bg-slate-600 px-3 py-1 text-sm text-white hover:bg-slate-700" href="{{ path('app_game_decrease_away', {'id': game.id}) }}">A-</a>
+                </div>
+            {% endif %}
         </div>
+
+        <p class="mt-4 text-sm text-slate-500">{{ game.location }}</p>
+        <p class="text-sm text-slate-500">{{ game.datetime ? game.datetime|date('d.m.Y H:i') : '' }}</p>
     </div>
 
-    <button class="btn btn-secondary mb-3" onclick="window.location.reload();">Aktualisieren</button>
+    <button class="{{ btn }} mb-6" onclick="window.location.reload();">Aktualisieren</button>
 
-    {% if app.user %}
-    {% if app.user.email == game.owner.email %}
-    <div class="card mb-4">
-        <div class="card-body">
+    {% if is_owner %}
+        <div class="mb-6 rounded-lg bg-white p-6 shadow">
             {{ render(controller('App\\Controller\\GameCommandController::gameEventForm', {'id': game.id})) }}
         </div>
-    </div>
-    {% endif %}
     {% endif %}
 
-    {% for event in game.gameevents %}
-        <div class="card mb-2">
-            <div class="card-body">
-                {{ event.timecode }} - {{ event.message }}
+    <div class="space-y-2">
+        {% for event in game.gameevents %}
+            <div class="rounded-md bg-white px-4 py-3 shadow-sm">
+                <span class="font-semibold text-slate-700">{{ event.timecode }}</span>
+                <span class="text-slate-600">- {{ event.message }}</span>
             </div>
-        </div>
-    {% endfor %}
+        {% endfor %}
+    </div>
 
-    <a class="btn btn-secondary" href="{{ path('app_game_index') }}">Zurück</a>
-
-    {% if app.user %}
-        {% if app.user.email == game.owner.email %}
-            <a class="btn btn-secondary" href="{{ path('app_game_edit', {'id': game.id}) }}">Bearbeiten</a>
-
+    <div class="mt-6 flex gap-3">
+        <a class="{{ btn }}" href="{{ path('app_game_index') }}">Zurück</a>
+        {% if is_owner %}
+            <a class="{{ btn }}" href="{{ path('app_game_edit', {'id': game.id}) }}">Bearbeiten</a>
         {% endif %}
-    {% endif %}
-
+    </div>
 {% endblock %}

@@ -1,27 +1,22 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Register{% endblock %}
+{% block title %}Registrieren{% endblock %}
 
 {% block body %}
-    <div class="col-md-4 offset-md-4 col-sm-8 offset-sm-2 mt-5">
-        <div class="card">
-            <div class="card-body">
-                <h4 class="card-title text-center mb-4 mt-1">Registrieren</h4>
-                <hr>
-                {% for flashError in app.flashes('verify_email_error') %}
-                    <div class="alert alert-danger" role="alert">{{ flashError }}</div>
-                {% endfor %}
+    <div class="mx-auto mt-8 max-w-sm rounded-lg bg-white p-6 shadow">
+        <h1 class="mb-4 text-center text-xl font-semibold text-slate-800">Registrieren</h1>
 
-                {{ form_start(registrationForm) }}
+        {% for flashError in app.flashes('verify_email_error') %}
+            <div class="mb-4 rounded-md bg-red-100 px-4 py-2 text-sm text-red-700" role="alert">{{ flashError }}</div>
+        {% endfor %}
+
+        {{ form_start(registrationForm) }}
+            <div class="space-y-4">
                 {{ form_row(registrationForm.email) }}
-                {{ form_row(registrationForm.plainPassword, {
-                    label: 'Password'
-                }) }}
+                {{ form_row(registrationForm.plainPassword, { label: 'Passwort' }) }}
                 {{ form_row(registrationForm.agreeTerms) }}
-
-                <button type="submit" class="btn btn-primary btn-block">Register</button>
-                {{ form_end(registrationForm) }}
             </div>
-        </div>
+            <button type="submit" class="mt-5 w-full rounded-md bg-slate-700 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800">Registrieren</button>
+        {{ form_end(registrationForm) }}
     </div>
 {% endblock %}
