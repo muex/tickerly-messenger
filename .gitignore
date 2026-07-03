@@ -1,4 +1,9 @@
 .idea
+
+# Generated read-model projections (rebuilt by GameProjector)
+/public/nextgames.json
+/public/lastgames.json
+
 ###> symfony/framework-bundle ###
 /.env.local
 /.env.local.php
