@@ -10,10 +10,10 @@ use Symfony\Component\Messenger\MessageBusInterface;
 
 class EventBus implements GameEventBus
 {
-    public function __construct(private MessageBusInterface $eventMessageBus) {}
+    public function __construct(private MessageBusInterface $eventBus) {}
 
     public function dispatch(Event $event): void
     {
-        $this->eventMessageBus->dispatch($event);
+        $this->eventBus->dispatch($event);
     }
 }

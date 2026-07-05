@@ -13,10 +13,7 @@ use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 #[AsMessageHandler(bus: 'command.bus')]
 final class CreateGameEventHandler
 {
-    public function __construct(GameRepository $gameRepository, EventBus $eventBus, EntityManagerInterface $entityManager){
-        $this->gameRepository = $gameRepository;
-        $this->eventBus = $eventBus;
-        $this->entityManager = $entityManager;
+    public function __construct(private GameRepository $gameRepository, private EventBus $eventBus, private EntityManagerInterface $entityManager){
     }
 
     public function __invoke(CreateGameEvent $gameevent)

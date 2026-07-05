@@ -10,10 +10,10 @@ use Symfony\Component\Messenger\MessageBusInterface;
 
 class QueryBus implements GameQueryBus
 {
-    public function __construct(private MessageBusInterface $queryMessageBus) {}
+    public function __construct(private MessageBusInterface $queryBus) {}
 
     public function dispatch(Query $query): void
     {
-        $this->queryMessageBus->dispatch($query);
+        $this->queryBus->dispatch($query);
     }
 }
