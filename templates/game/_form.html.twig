@@ -1,8 +1,6 @@
 {{ form_start(form) }}
-    <div class="space-y-4">
-        {{ form_widget(form) }}
-    </div>
-    <button class="btn-primary mt-6">
+    {{ form_widget(form) }}
+    <button class="btn-primary mt-2">
         {{ button_label|default('Speichern') }}
     </button>
 {{ form_end(form) }}

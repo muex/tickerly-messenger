@@ -1,0 +1,39 @@
+{% use 'tailwind_2_layout.html.twig' %}
+
+{#
+ # Project form theme — makes Symfony-rendered forms match the
+ # Apple-style design system (.field inputs, brand focus ring, etc.).
+ #}
+
+{%- block form_row -%}
+    {%- set row_class = row_class|default('mb-4') -%}
+    {{- parent() -}}
+{%- endblock form_row -%}
+
+{%- block widget_attributes -%}
+    {%- set widget_class = widget_class|default('field') -%}
+    {{- parent() -}}
+{%- endblock widget_attributes -%}
+
+{%- block form_label -%}
+    {%- set label_class = label_class|default('mb-1.5 block text-sm font-medium text-ink-700') -%}
+    {{- parent() -}}
+{%- endblock form_label -%}
+
+{%- block form_help -%}
+    {%- set help_class = help_class|default('mt-1 text-xs text-ink-400') -%}
+    {{- parent() -}}
+{%- endblock form_help -%}
+
+{%- block form_errors -%}
+    {%- if errors|length > 0 -%}
+        {%- for error in errors -%}
+            <p class="mt-1.5 text-xs text-red-600">{{ error.message }}</p>
+        {%- endfor -%}
+    {%- endif -%}
+{%- endblock form_errors -%}
+
+{%- block checkbox_widget -%}
+    {%- set widget_class = widget_class|default('h-4 w-4 rounded border-black/20 accent-brand-500') -%}
+    {{- parent() -}}
+{%- endblock checkbox_widget -%}

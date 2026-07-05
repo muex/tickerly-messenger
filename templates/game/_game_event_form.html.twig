@@ -1,10 +1,10 @@
 {{ form_start(form, {method: 'POST', action: path('app_event_new', {'game_id': game.id})}) }}
     <div class="flex flex-col gap-3 sm:flex-row sm:items-end">
         <div class="sm:w-28">
-            {{ form_row(form.timecode) }}
+            {{ form_row(form.timecode, { row_attr: { class: 'mb-0' } }) }}
         </div>
         <div class="flex-1">
-            {{ form_row(form.message) }}
+            {{ form_row(form.message, { row_attr: { class: 'mb-0' } }) }}
         </div>
         <button class="btn-primary" type="submit">
             Speichern
