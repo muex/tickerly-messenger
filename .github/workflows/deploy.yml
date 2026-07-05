@@ -1,0 +1,93 @@
+name: Deploy to All-Inkl
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Never run two deploys at once; cancel an in-progress one if a newer push arrives.
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+env:
+  APP_ENV: prod
+  # Match this to the PHP version selected for your domain in the All-Inkl KAS panel.
+  PHP_VERSION: "8.3"
+
+jobs:
+  deploy:
+    name: Build & deploy
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          extensions: ctype, iconv, intl, mbstring, pdo, tokenizer
+          coverage: none
+          tools: composer:v2
+
+      - name: Cache Composer packages
+        uses: actions/cache@v4
+        with:
+          path: vendor
+          key: composer-${{ env.PHP_VERSION }}-${{ hashFiles('composer.lock') }}
+          restore-keys: composer-${{ env.PHP_VERSION }}-
+
+      - name: Install PHP dependencies (production)
+        run: |
+          composer install \
+            --no-dev \
+            --optimize-autoloader \
+            --classmap-authoritative \
+            --prefer-dist \
+            --no-progress \
+            --no-interaction
+
+      # Downloads third-party JS/CSS declared in importmap.php into assets/vendor/.
+      - name: Install importmap assets
+        run: php bin/console importmap:install
+
+      # symfonycasts/tailwind-bundle downloads a standalone binary — no Node needed.
+      - name: Build Tailwind CSS
+        run: php bin/console tailwind:build --minify
+
+      # Compiles + versions all mapped assets into public/assets/.
+      - name: Compile AssetMapper
+        run: php bin/console asset-map:compile
+
+      - name: Configure SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -p "${{ vars.SSH_PORT }}" -H "${{ vars.SSH_HOST }}" >> ~/.ssh/known_hosts 2>/dev/null
+
+      - name: Deploy with rsync
+        run: |
+          rsync -rlz --delete \
+            -e "ssh -i ~/.ssh/deploy_key -p ${{ vars.SSH_PORT }}" \
+            --exclude='.git/' \
+            --exclude='.github/' \
+            --exclude='.idea/' \
+            --exclude='node_modules/' \
+            --exclude='tests/' \
+            --exclude='docker-compose*.yml' \
+            --exclude='var/' \
+            --exclude='.env.local' \
+            --exclude='.env.*.local' \
+            --exclude='public/nextgames.json' \
+            --exclude='public/lastgames.json' \
+            ./ "${{ vars.SSH_USER }}@${{ vars.SSH_HOST }}:${{ vars.DEPLOY_PATH }}/"
+
+      # Warm the prod cache on the server so paths resolve to the real deploy path.
+      - name: Clear & warm prod cache on server
+        run: |
+          ssh -i ~/.ssh/deploy_key -p "${{ vars.SSH_PORT }}" \
+            "${{ vars.SSH_USER }}@${{ vars.SSH_HOST }}" \
+            "cd ${{ vars.DEPLOY_PATH }} && APP_ENV=prod php bin/console cache:clear --no-debug && APP_ENV=prod php bin/console cache:warmup"
