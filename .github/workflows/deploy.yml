@@ -13,7 +13,7 @@ concurrency:
 env:
   APP_ENV: prod
   # Match this to the PHP version selected for your domain in the All-Inkl KAS panel.
-  PHP_VERSION: "8.3"
+  PHP_VERSION: "8.4"
 
 jobs:
   deploy:
