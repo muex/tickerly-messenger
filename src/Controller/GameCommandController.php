@@ -12,8 +12,8 @@ use App\Game\Application\Command\DecreaseHomePoints;
 use App\Game\Application\Command\DeleteGame;
 use App\Game\Application\Command\IncreaseAwayPoints;
 use App\Game\Application\Command\IncreaseHomePoints;
+use App\Game\Application\Command\UpdateGame;
 use App\Game\Infrastructure\CommandBus;
-use App\Repository\GameRepository;
 use Symfony\Bridge\Doctrine\Attribute\MapEntity;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -51,13 +51,20 @@ class GameCommandController extends AbstractController
     }
 
     #[Route('/{id}/edit', name: 'app_game_edit', methods: ['GET', 'POST'])]
-    public function edit(Request $request, Game $game, GameRepository $gameRepository): Response
+    public function edit(Request $request, Game $game, CommandBus $commandBus): Response
     {
         $form = $this->createForm(GameType::class, $game);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $gameRepository->save($game, true);
+            $updateGameCommand = new UpdateGame(
+                $game->getId(),
+                $game->getHome(),
+                $game->getAway(),
+                $game->getLocation(),
+                $game->getDatetime(),
+            );
+            $commandBus->dispatch($updateGameCommand);
 
             return $this->redirectToRoute('app_game_index', [], Response::HTTP_SEE_OTHER);
         }

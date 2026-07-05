@@ -4,9 +4,10 @@ namespace App\Game\Application\Command;
 
 use App\Game\Infrastructure\GameProjector;
 use App\Repository\GameRepository;
-use Symfony\Component\Messenger\Handler\MessageHandlerInterface;
+use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 
-class DeleteGameHandler implements MessageHandlerInterface
+#[AsMessageHandler(bus: 'command.bus')]
+class DeleteGameHandler
 {
     public function __construct(private GameRepository $gameRepository, private GameProjector $gameProjector) {}
 

@@ -2,9 +2,10 @@
 
 namespace App\Game\Application\Query;
 
-use Symfony\Component\Messenger\Handler\MessageHandlerInterface;
+use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 
-class GetLastGamesHandler implements MessageHandlerInterface
+#[AsMessageHandler(bus: 'query.bus')]
+class GetLastGamesHandler
 {
     public function __invoke(GetLastGames $getLastGames)
     {

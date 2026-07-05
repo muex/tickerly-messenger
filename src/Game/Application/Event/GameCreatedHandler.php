@@ -3,9 +3,10 @@
 namespace App\Game\Application\Event;
 
 use App\Game\Infrastructure\GameProjector;
-use Symfony\Component\Messenger\Handler\MessageHandlerInterface;
+use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 
-class GameCreatedHandler implements MessageHandlerInterface
+#[AsMessageHandler(bus: 'event.bus')]
+class GameCreatedHandler
 {
     public function __construct(private GameProjector $gameProjector) {}
 

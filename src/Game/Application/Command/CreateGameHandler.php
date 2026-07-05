@@ -6,9 +6,10 @@ use App\Entity\Game;
 use App\Game\Application\Event\GameCreated;
 use App\Repository\GameRepository;
 use App\Shared\Domain\EventBus;
-use Symfony\Component\Messenger\Handler\MessageHandlerInterface;
+use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 
-class CreateGameHandler implements MessageHandlerInterface
+#[AsMessageHandler(bus: 'command.bus')]
+class CreateGameHandler
 {
     public function __construct(GameRepository $gameRepository, EventBus $eventBus){
         $this->gameRepository = $gameRepository;
