@@ -1,13 +1,13 @@
 <header class="glass sticky top-0 z-40 border-b border-black/5">
     <nav class="mx-auto flex w-full max-w-3xl items-center justify-between px-4 py-3">
-        <a class="flex items-center gap-2 text-lg font-semibold tracking-tight text-ink-900" href="{{ path('app_game_index') }}">
+        <a class="flex items-center gap-2 text-lg font-semibold tracking-tight text-ink-900" href="{{ path('app_home') }}">
             <span class="grid h-7 w-7 place-items-center rounded-full bg-ink-900 text-sm text-white">●</span>
             tickerly
         </a>
 
         <ul class="flex items-center gap-1 text-sm font-medium">
             <li>
-                <a class="rounded-full px-3 py-1.5 text-ink-600 transition hover:bg-black/5 hover:text-ink-900" href="{{ path('app_game_index') }}">Startseite</a>
+                <a class="rounded-full px-3 py-1.5 text-ink-600 transition hover:bg-black/5 hover:text-ink-900" href="{{ path('app_game_index') }}">Spiele</a>
             </li>
             {% if is_granted('ROLE_USER') %}
                 <li class="hidden px-3 py-1.5 text-ink-400 sm:block">{{ app.user.email }}</li>

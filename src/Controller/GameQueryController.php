@@ -11,7 +11,7 @@ use Symfony\Component\Routing\Annotation\Route;
 #[Route('/')]
 class GameQueryController extends AbstractController
 {
-    #[Route('/', name: 'app_game_index', methods: ['GET'])]
+    #[Route('/games', name: 'app_game_index', methods: ['GET'])]
     public function index(GameRepository $gameRepository): Response
     {
         return $this->render('game/index.html.twig');
