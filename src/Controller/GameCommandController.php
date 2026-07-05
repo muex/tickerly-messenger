@@ -14,7 +14,7 @@ use App\Game\Application\Command\IncreaseAwayPoints;
 use App\Game\Application\Command\IncreaseHomePoints;
 use App\Game\Infrastructure\CommandBus;
 use App\Repository\GameRepository;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
+use Symfony\Bridge\Doctrine\Attribute\MapEntity;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -45,7 +45,7 @@ class GameCommandController extends AbstractController
             return $this->redirectToRoute('app_game_index', [], Response::HTTP_SEE_OTHER);
         }
 
-        return $this->renderForm('game/new.html.twig', [
+        return $this->render('game/new.html.twig', [
             'form' => $form,
         ]);
     }
@@ -62,7 +62,7 @@ class GameCommandController extends AbstractController
             return $this->redirectToRoute('app_game_index', [], Response::HTTP_SEE_OTHER);
         }
 
-        return $this->renderForm('game/edit.html.twig', [
+        return $this->render('game/edit.html.twig', [
             'game' => $game,
             'form' => $form,
         ]);
@@ -117,8 +117,7 @@ class GameCommandController extends AbstractController
     }
 
     #[Route('/{game_id}/newevent', name: 'app_event_new', methods: ['POST'])]
-    #[ParamConverter('game', options: ['mapping' => ['game_id' => 'id']])]
-    public function gameEventNew(Request $request, Game $game, CommandBus $commandBus): Response
+    public function gameEventNew(Request $request, #[MapEntity(mapping: ['game_id' => 'id'])] Game $game, CommandBus $commandBus): Response
     {
         $form = $this->createForm(GameEventType::class);
         $form->handleRequest($request);
