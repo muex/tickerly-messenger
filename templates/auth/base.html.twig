@@ -1,0 +1,31 @@
+{% extends 'base.html.twig' %}
+
+{#
+ # Shared layout for the authentication pages (login / register).
+ # Children fill in: heading, subheading, auth_content and auth_footer.
+ #}
+
+{# Auth screens get a focused, chrome-free presentation #}
+{% block topnav %}{% endblock %}
+
+{% block body %}
+    <div class="flex min-h-[calc(100vh-5rem)] flex-col items-center justify-center py-8">
+        <a href="{{ path('app_game_index') }}" class="mb-8 flex items-center gap-2 text-lg font-semibold tracking-tight text-ink-900">
+            <span class="grid h-8 w-8 place-items-center rounded-full bg-ink-900 text-white">●</span>
+            tickerly
+        </a>
+
+        <div class="card w-full max-w-sm rounded-3xl p-8">
+            <div class="mb-7 text-center">
+                <h1 class="text-2xl font-semibold tracking-tight text-ink-900">{% block heading %}{% endblock %}</h1>
+                {% block subheading %}{% endblock %}
+            </div>
+
+            {% block auth_content %}{% endblock %}
+        </div>
+
+        <div class="mt-6 text-center text-sm text-ink-500">
+            {% block auth_footer %}{% endblock %}
+        </div>
+    </div>
+{% endblock %}

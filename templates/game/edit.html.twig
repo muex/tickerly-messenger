@@ -3,13 +3,13 @@
 {% block title %}Spiel bearbeiten{% endblock %}
 
 {% block body %}
-    <div class="mx-auto max-w-lg rounded-lg bg-white p-6 shadow">
-        <h1 class="mb-4 text-xl font-semibold text-slate-800">Spiel bearbeiten</h1>
+    <div class="card mx-auto max-w-lg rounded-3xl p-8">
+        <h1 class="mb-6 text-2xl font-semibold tracking-tight text-ink-900">Spiel bearbeiten</h1>
 
         {{ include('game/_form.html.twig', {'button_label': 'Aktualisieren'}) }}
 
-        <div class="mt-6 flex items-center justify-between border-t border-slate-200 pt-4">
-            <a class="text-sm text-slate-600 hover:text-slate-900" href="{{ path('app_game_index') }}">&larr; Zurück zur Übersicht</a>
+        <div class="mt-6 flex items-center justify-between border-t border-black/10 pt-5">
+            <a class="text-sm text-ink-500 transition hover:text-ink-900" href="{{ path('app_game_index') }}">&larr; Zurück zur Übersicht</a>
             {{ include('game/_delete_form.html.twig') }}
         </div>
     </div>

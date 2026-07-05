@@ -3,18 +3,20 @@
 {% block title %}Spiele{% endblock %}
 
 {% block body %}
-    <h1 class="mb-4 text-center text-2xl font-bold text-slate-800">Die nächsten Spiele</h1>
+    <h1 class="mb-1 text-center text-3xl font-semibold tracking-tight text-ink-900">Die nächsten Spiele</h1>
+    <p class="mb-6 text-center text-sm text-ink-500">Live-Ticker für deine Spiele.</p>
 
     <div id="next-games" class="space-y-4"></div>
 
-    <h2 class="mb-4 mt-10 text-center text-xl font-semibold text-slate-800">Die letzten Spiele</h2>
+    <h2 class="mb-6 mt-12 text-center text-xl font-semibold tracking-tight text-ink-900">Die letzten Spiele</h2>
 
     <div id="last-games" class="space-y-4"></div>
 
     {% if is_granted('ROLE_USER') %}
-        <div class="mt-8 text-center">
-            <a class="inline-flex items-center justify-center rounded-md bg-slate-700 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800"
-               href="{{ path('app_game_new') }}">Neues Spiel erstellen</a>
+        <div class="mt-10 text-center">
+            <a class="btn-primary" href="{{ path('app_game_new') }}">
+                <span class="text-lg leading-none">+</span> Neues Spiel erstellen
+            </a>
         </div>
     {% endif %}
 {% endblock %}
@@ -26,14 +28,13 @@
             for (let game of games) {
                 let dt = new Date(game.datetime.date);
                 output += `
-                <div class="rounded-lg bg-white p-5 text-center shadow">
-                    <p class="text-lg font-semibold text-slate-800">${game.home} : ${game.away}</p>
-                    <p class="my-1 text-2xl font-bold text-slate-900">${game.homepoints} : ${game.awaypoints}</p>
-                    <p class="text-sm text-slate-500">${game.location}</p>
-                    <p class="text-sm text-slate-500">${dt.toLocaleDateString()} ${dt.toLocaleTimeString()}</p>
-                    <a class="mt-3 inline-flex items-center justify-center rounded-md bg-slate-700 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800"
-                       href="/show/${game.id}">Zum Spiel</a>
-                </div>`;
+                <a href="/show/${game.id}" class="card block rounded-3xl p-6 text-center transition duration-200 hover:-translate-y-0.5 hover:shadow-lg">
+                    <p class="text-base font-medium text-ink-500">${game.home} : ${game.away}</p>
+                    <p class="my-2 text-4xl font-semibold tracking-tight text-ink-900">${game.homepoints} : ${game.awaypoints}</p>
+                    <p class="text-sm text-ink-400">${game.location}</p>
+                    <p class="text-sm text-ink-400">${dt.toLocaleDateString()} ${dt.toLocaleTimeString()}</p>
+                    <span class="mt-4 inline-flex items-center gap-1 text-sm font-medium text-brand-500">Zum Spiel →</span>
+                </a>`;
             }
             return output;
         }

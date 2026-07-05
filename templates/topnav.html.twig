@@ -1,21 +1,22 @@
-<header class="bg-slate-800 text-white shadow">
+<header class="glass sticky top-0 z-40 border-b border-black/5">
     <nav class="mx-auto flex w-full max-w-3xl items-center justify-between px-4 py-3">
-        <a class="text-xl font-bold tracking-tight" href="{{ path('app_game_index') }}">
+        <a class="flex items-center gap-2 text-lg font-semibold tracking-tight text-ink-900" href="{{ path('app_game_index') }}">
+            <span class="grid h-7 w-7 place-items-center rounded-full bg-ink-900 text-sm text-white">●</span>
             tickerly
         </a>
 
-        <ul class="flex items-center gap-4 text-sm">
+        <ul class="flex items-center gap-1 text-sm font-medium">
             <li>
-                <a class="text-slate-200 hover:text-white" href="{{ path('app_game_index') }}">Startseite</a>
+                <a class="rounded-full px-3 py-1.5 text-ink-600 transition hover:bg-black/5 hover:text-ink-900" href="{{ path('app_game_index') }}">Startseite</a>
             </li>
             {% if is_granted('ROLE_USER') %}
-                <li class="text-slate-400">{{ app.user.email }}</li>
+                <li class="hidden px-3 py-1.5 text-ink-400 sm:block">{{ app.user.email }}</li>
                 <li>
-                    <a class="text-slate-200 hover:text-white" href="{{ path('app_logout') }}">Abmelden</a>
+                    <a class="rounded-full px-3 py-1.5 text-ink-600 transition hover:bg-black/5 hover:text-ink-900" href="{{ path('app_logout') }}">Abmelden</a>
                 </li>
             {% else %}
                 <li>
-                    <a class="text-slate-200 hover:text-white" href="{{ path('app_login') }}">Anmelden</a>
+                    <a class="btn-primary px-4 py-1.5 text-sm" href="{{ path('app_login') }}">Anmelden</a>
                 </li>
             {% endif %}
         </ul>

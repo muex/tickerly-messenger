@@ -1,22 +1,49 @@
-{% extends 'base.html.twig' %}
+{% extends 'auth/base.html.twig' %}
 
 {% block title %}Registrieren{% endblock %}
 
-{% block body %}
-    <div class="mx-auto mt-8 max-w-sm rounded-lg bg-white p-6 shadow">
-        <h1 class="mb-4 text-center text-xl font-semibold text-slate-800">Registrieren</h1>
+{% block heading %}Konto erstellen{% endblock %}
+{% block subheading %}
+    <p class="mt-2 text-sm text-ink-500">Erstelle dein tickerly-Konto in wenigen Sekunden.</p>
+{% endblock %}
 
-        {% for flashError in app.flashes('verify_email_error') %}
-            <div class="mb-4 rounded-md bg-red-100 px-4 py-2 text-sm text-red-700" role="alert">{{ flashError }}</div>
-        {% endfor %}
+{% block auth_content %}
+    {% for flashError in app.flashes('verify_email_error') %}
+        <div class="mb-5 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-600 ring-1 ring-red-100" role="alert">{{ flashError }}</div>
+    {% endfor %}
 
-        {{ form_start(registrationForm) }}
-            <div class="space-y-4">
-                {{ form_row(registrationForm.email) }}
-                {{ form_row(registrationForm.plainPassword, { label: 'Passwort' }) }}
-                {{ form_row(registrationForm.agreeTerms) }}
-            </div>
-            <button type="submit" class="mt-5 w-full rounded-md bg-slate-700 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800">Registrieren</button>
-        {{ form_end(registrationForm) }}
-    </div>
+    {{ form_start(registrationForm, { attr: { class: 'space-y-4', novalidate: 'novalidate' } }) }}
+        <div>
+            <label class="mb-1.5 block text-sm font-medium text-ink-700" for="{{ registrationForm.email.vars.id }}">Email</label>
+            {{ form_widget(registrationForm.email, { attr: { class: 'field', placeholder: 'name@beispiel.de', autocomplete: 'email' } }) }}
+            {% for e in registrationForm.email.vars.errors %}
+                <p class="mt-1.5 text-xs text-red-600">{{ e.message }}</p>
+            {% endfor %}
+        </div>
+
+        <div>
+            <label class="mb-1.5 block text-sm font-medium text-ink-700" for="{{ registrationForm.plainPassword.vars.id }}">Passwort</label>
+            {{ form_widget(registrationForm.plainPassword, { attr: { class: 'field', placeholder: '••••••••' } }) }}
+            {% for e in registrationForm.plainPassword.vars.errors %}
+                <p class="mt-1.5 text-xs text-red-600">{{ e.message }}</p>
+            {% endfor %}
+        </div>
+
+        <div>
+            <label class="flex items-start gap-3 text-sm text-ink-600">
+                {{ form_widget(registrationForm.agreeTerms, { attr: { class: 'mt-0.5 h-4 w-4 rounded border-black/20 accent-brand-500' } }) }}
+                <span>Ich akzeptiere die Nutzungsbedingungen.</span>
+            </label>
+            {% for e in registrationForm.agreeTerms.vars.errors %}
+                <p class="mt-1.5 text-xs text-red-600">{{ e.message }}</p>
+            {% endfor %}
+        </div>
+
+        <button type="submit" class="btn-primary mt-2 w-full">Registrieren</button>
+    {{ form_end(registrationForm) }}
+{% endblock %}
+
+{% block auth_footer %}
+    Bereits registriert?
+    <a class="font-medium text-brand-500 hover:text-brand-600" href="{{ path('app_login') }}">Anmelden</a>
 {% endblock %}

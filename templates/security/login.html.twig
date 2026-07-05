@@ -1,40 +1,45 @@
-{% extends 'base.html.twig' %}
+{% extends 'auth/base.html.twig' %}
 
 {% block title %}Anmelden{% endblock %}
 
-{% block body %}
-    <div class="mx-auto mt-8 max-w-sm rounded-lg bg-white p-6 shadow">
-        <h1 class="mb-4 text-center text-xl font-semibold text-slate-800">Anmelden</h1>
+{% block heading %}Willkommen zurück{% endblock %}
+{% block subheading %}
+    <p class="mt-2 text-sm text-ink-500">Melde dich an, um deine Spiele zu tickern.</p>
+{% endblock %}
 
-        {% if error %}
-            <div class="mb-4 rounded-md bg-red-100 px-4 py-2 text-sm text-red-700">
-                {{ error.messageKey|trans(error.messageData, 'security') }}
-            </div>
-        {% endif %}
+{% block auth_content %}
+    {% if error %}
+        <div class="mb-5 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-600 ring-1 ring-red-100" role="alert">
+            {{ error.messageKey|trans(error.messageData, 'security') }}
+        </div>
+    {% endif %}
 
-        {% if app.user %}
-            <div class="mb-4 text-sm text-slate-600">
-                Angemeldet als {{ app.user.userIdentifier }}, <a class="text-slate-800 underline" href="{{ path('app_logout') }}">Abmelden</a>
-            </div>
-        {% endif %}
+    {% if app.user %}
+        <div class="mb-5 rounded-xl bg-brand-50 px-4 py-3 text-sm text-ink-600 ring-1 ring-brand-100">
+            Angemeldet als {{ app.user.userIdentifier }} —
+            <a class="font-medium text-brand-500 hover:text-brand-600" href="{{ path('app_logout') }}">Abmelden</a>
+        </div>
+    {% endif %}
 
-        <form method="post" class="space-y-4">
-            <div>
-                <label class="mb-1 block text-sm font-medium text-slate-700" for="inputEmail">Email</label>
-                <input type="email" value="{{ last_username }}" name="email" id="inputEmail" autocomplete="email" required autofocus
-                       class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500">
-            </div>
-            <div>
-                <label class="mb-1 block text-sm font-medium text-slate-700" for="inputPassword">Passwort</label>
-                <input type="password" name="password" id="inputPassword" autocomplete="current-password" required
-                       class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500">
-            </div>
+    <form method="post" class="space-y-4">
+        <div>
+            <label class="mb-1.5 block text-sm font-medium text-ink-700" for="inputEmail">Email</label>
+            <input type="email" value="{{ last_username }}" name="email" id="inputEmail" autocomplete="email" required autofocus
+                   placeholder="name@beispiel.de" class="field">
+        </div>
+        <div>
+            <label class="mb-1.5 block text-sm font-medium text-ink-700" for="inputPassword">Passwort</label>
+            <input type="password" name="password" id="inputPassword" autocomplete="current-password" required
+                   placeholder="••••••••" class="field">
+        </div>
 
-            <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
+        <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
 
-            <button class="w-full rounded-md bg-slate-700 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800" type="submit">
-                Anmelden
-            </button>
-        </form>
-    </div>
+        <button class="btn-primary mt-2 w-full" type="submit">Anmelden</button>
+    </form>
+{% endblock %}
+
+{% block auth_footer %}
+    Noch kein Konto?
+    <a class="font-medium text-brand-500 hover:text-brand-600" href="{{ path('app_register') }}">Registrieren</a>
 {% endblock %}
