@@ -122,7 +122,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     {
         if (!$this->games->contains($game)) {
             $this->games->add($game);
-            $game->setUser($this);
+            $game->setOwner($this);
         }
 
         return $this;
@@ -132,8 +132,8 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     {
         if ($this->games->removeElement($game)) {
             // set the owning side to null (unless already changed)
-            if ($game->getUser() === $this) {
-                $game->setUser(null);
+            if ($game->getOwner() === $this) {
+                $game->setOwner(null);
             }
         }
 

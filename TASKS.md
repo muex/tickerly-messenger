@@ -37,22 +37,22 @@ Prioritized findings and recommendations from a code analysis of the app
 
 ## 🟠 Correctness bugs
 
-- [ ] **`User::addGame` / `removeGame` call nonexistent methods.**
+- [x] **`User::addGame` / `removeGame` call nonexistent methods.**
   `src/Entity/User.php` calls `$game->setUser()` / `$game->getUser()`, but
   `Game` only has `setOwner`/`getOwner`. Any call fatals. Rename to match.
 
-- [ ] **`GameEvent` references a missing repository.**
+- [x] **`GameEvent` references a missing repository.**
   `src/Entity/GameEvent.php` declares `repositoryClass: GameEventRepository::class`
   (imported from `App\Repository`), but that class doesn't exist. Fails as soon
   as anything does `getRepository(GameEvent::class)`. Create the repo or drop
   the `repositoryClass`.
 
-- [ ] **`gameEventNew` renders a nonexistent template on validation failure.**
+- [x] **`gameEventNew` renders a nonexistent template on validation failure.**
   `GameCommandController::gameEventNew` renders `game/gameevent_form_error.html.twig`,
   which isn't in `templates/`. Invalid submissions → "template not found" 500.
   Create the template or reuse the existing event form partial.
 
-- [ ] **"Last games" ordering is wrong.** `GameRepository::findLastGames()`
+- [x] **"Last games" ordering is wrong.** `GameRepository::findLastGames()`
   orders `datetime ASC` with `setMaxResults(10)`, returning the *oldest* 10 past
   games instead of the most recent. Change to `DESC`. (`findNextGames` orders by
   `id ASC` rather than `datetime` — make consistent.)
