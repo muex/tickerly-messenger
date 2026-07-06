@@ -23,28 +23,43 @@
 
 {% block scripts %}
     <script>
-        function renderGames(games) {
-            let output = "";
-            for (let game of games) {
-                let dt = new Date(game.datetime.date);
-                output += `
-                <a href="/show/${game.id}" class="card block rounded-3xl p-6 text-center transition duration-200 hover:-translate-y-0.5 hover:shadow-lg">
-                    <p class="text-base font-medium text-ink-500">${game.home} : ${game.away}</p>
-                    <p class="my-2 text-4xl font-semibold tracking-tight text-ink-900">${game.homepoints} : ${game.awaypoints}</p>
-                    <p class="text-sm text-ink-400">${game.location}</p>
-                    <p class="text-sm text-ink-400">${dt.toLocaleDateString()} ${dt.toLocaleTimeString()}</p>
-                    <span class="mt-4 inline-flex items-center gap-1 text-sm font-medium text-brand-500">Zum Spiel →</span>
-                </a>`;
-            }
-            return output;
+        function line(cls, text) {
+            const p = document.createElement("p");
+            p.className = cls;
+            p.textContent = text;
+            return p;
+        }
+
+        function renderGame(game) {
+            const dt = new Date(game.datetime.date);
+
+            const card = document.createElement("a");
+            card.href = "/show/" + encodeURIComponent(game.id);
+            card.className = "card block rounded-3xl p-6 text-center transition duration-200 hover:-translate-y-0.5 hover:shadow-lg";
+
+            card.appendChild(line("text-base font-medium text-ink-500", `${game.home} : ${game.away}`));
+            card.appendChild(line("my-2 text-4xl font-semibold tracking-tight text-ink-900", `${game.homepoints} : ${game.awaypoints}`));
+            card.appendChild(line("text-sm text-ink-400", game.location));
+            card.appendChild(line("text-sm text-ink-400", `${dt.toLocaleDateString()} ${dt.toLocaleTimeString()}`));
+
+            const cta = document.createElement("span");
+            cta.className = "mt-4 inline-flex items-center gap-1 text-sm font-medium text-brand-500";
+            cta.textContent = "Zum Spiel →";
+            card.appendChild(cta);
+
+            return card;
+        }
+
+        function renderGames(target, games) {
+            target.replaceChildren(...games.map(renderGame));
         }
 
         fetch("/nextgames.json")
             .then(response => response.json())
-            .then(games => { document.querySelector("#next-games").innerHTML = renderGames(games); });
+            .then(games => renderGames(document.querySelector("#next-games"), games));
 
         fetch("/lastgames.json")
             .then(response => response.json())
-            .then(games => { document.querySelector("#last-games").innerHTML = renderGames(games); });
+            .then(games => renderGames(document.querySelector("#last-games"), games));
     </script>
 {% endblock %}

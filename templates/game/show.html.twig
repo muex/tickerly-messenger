@@ -11,15 +11,27 @@
         <div class="mt-5 flex items-center justify-center gap-5">
             {% if is_owner %}
                 <div class="flex flex-col gap-2">
-                    <a class="grid h-9 w-9 place-items-center rounded-full bg-ink-900 text-sm font-semibold text-white transition hover:bg-ink-700 active:scale-95" href="{{ path('app_game_increase_home', {'id': game.id}) }}">H+</a>
-                    <a class="grid h-9 w-9 place-items-center rounded-full bg-black/5 text-sm font-semibold text-ink-600 transition hover:bg-black/10 active:scale-95" href="{{ path('app_game_decrease_home', {'id': game.id}) }}">H−</a>
+                    <form method="post" action="{{ path('app_game_increase_home', {'id': game.id}) }}">
+                        <input type="hidden" name="_token" value="{{ csrf_token('score') }}">
+                        <button class="grid h-9 w-9 place-items-center rounded-full bg-ink-900 text-sm font-semibold text-white transition hover:bg-ink-700 active:scale-95">H+</button>
+                    </form>
+                    <form method="post" action="{{ path('app_game_decrease_home', {'id': game.id}) }}">
+                        <input type="hidden" name="_token" value="{{ csrf_token('score') }}">
+                        <button class="grid h-9 w-9 place-items-center rounded-full bg-black/5 text-sm font-semibold text-ink-600 transition hover:bg-black/10 active:scale-95">H−</button>
+                    </form>
                 </div>
             {% endif %}
             <span class="text-6xl font-semibold tracking-tight text-ink-900 tabular-nums">{{ game.homepoints }} : {{ game.awaypoints }}</span>
             {% if is_owner %}
                 <div class="flex flex-col gap-2">
-                    <a class="grid h-9 w-9 place-items-center rounded-full bg-ink-900 text-sm font-semibold text-white transition hover:bg-ink-700 active:scale-95" href="{{ path('app_game_increase_away', {'id': game.id}) }}">A+</a>
-                    <a class="grid h-9 w-9 place-items-center rounded-full bg-black/5 text-sm font-semibold text-ink-600 transition hover:bg-black/10 active:scale-95" href="{{ path('app_game_decrease_away', {'id': game.id}) }}">A−</a>
+                    <form method="post" action="{{ path('app_game_increase_away', {'id': game.id}) }}">
+                        <input type="hidden" name="_token" value="{{ csrf_token('score') }}">
+                        <button class="grid h-9 w-9 place-items-center rounded-full bg-ink-900 text-sm font-semibold text-white transition hover:bg-ink-700 active:scale-95">A+</button>
+                    </form>
+                    <form method="post" action="{{ path('app_game_decrease_away', {'id': game.id}) }}">
+                        <input type="hidden" name="_token" value="{{ csrf_token('score') }}">
+                        <button class="grid h-9 w-9 place-items-center rounded-full bg-black/5 text-sm font-semibold text-ink-600 transition hover:bg-black/10 active:scale-95">A−</button>
+                    </form>
                 </div>
             {% endif %}
         </div>

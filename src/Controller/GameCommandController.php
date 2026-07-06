@@ -20,10 +20,13 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Security\Http\Attribute\IsCsrfTokenValid;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 class GameCommandController extends AbstractController
 {
     #[Route('/new', name: 'app_game_new', methods: ['GET', 'POST'])]
+    #[IsGranted('ROLE_USER')]
     public function new(Request $request, CommandBus $commandBus): Response
     {
         $form = $this->createForm(GameType::class);
@@ -51,6 +54,7 @@ class GameCommandController extends AbstractController
     }
 
     #[Route('/{id}/edit', name: 'app_game_edit', methods: ['GET', 'POST'])]
+    #[IsGranted('GAME_EDIT', subject: 'game')]
     public function edit(Request $request, Game $game, CommandBus $commandBus): Response
     {
         $form = $this->createForm(GameType::class, $game);
@@ -75,7 +79,9 @@ class GameCommandController extends AbstractController
         ]);
     }
 
-    #[Route('/{id}/increasehome', name: 'app_game_increase_home', methods: ['GET', 'POST'])]
+    #[Route('/{id}/increasehome', name: 'app_game_increase_home', methods: ['POST'])]
+    #[IsGranted('GAME_EDIT', subject: 'game')]
+    #[IsCsrfTokenValid('score')]
     public function increaseHomePoints(Request $request, Game $game, MessageBusInterface $commandBus): Response
     {
         $id = $game->getId();
@@ -85,7 +91,9 @@ class GameCommandController extends AbstractController
         return $this->redirectToRoute('app_game_show', ['id' => $game->getId()]);
     }
 
-    #[Route('/{id}/decreasehome', name: 'app_game_decrease_home', methods: ['GET', 'POST'])]
+    #[Route('/{id}/decreasehome', name: 'app_game_decrease_home', methods: ['POST'])]
+    #[IsGranted('GAME_EDIT', subject: 'game')]
+    #[IsCsrfTokenValid('score')]
     public function decreaseHomePoints(Request $request, Game $game, MessageBusInterface $commandBus): Response
     {
         $id = $game->getId();
@@ -95,7 +103,9 @@ class GameCommandController extends AbstractController
         return $this->redirectToRoute('app_game_show', ['id' => $game->getId()]);
     }
 
-    #[Route('/{id}/increaseaway', name: 'app_game_increase_away', methods: ['GET', 'POST'])]
+    #[Route('/{id}/increaseaway', name: 'app_game_increase_away', methods: ['POST'])]
+    #[IsGranted('GAME_EDIT', subject: 'game')]
+    #[IsCsrfTokenValid('score')]
     public function increaseAwayPoints(Request $request, Game $game, MessageBusInterface $commandBus): Response
     {
         $id = $game->getId();
@@ -105,7 +115,9 @@ class GameCommandController extends AbstractController
         return $this->redirectToRoute('app_game_show', ['id' => $game->getId()]);
     }
 
-    #[Route('/{id}/decreaseaway', name: 'app_game_decrease_away', methods: ['GET', 'POST'])]
+    #[Route('/{id}/decreaseaway', name: 'app_game_decrease_away', methods: ['POST'])]
+    #[IsGranted('GAME_EDIT', subject: 'game')]
+    #[IsCsrfTokenValid('score')]
     public function decreaseAwayPoints(Request $request, Game $game, MessageBusInterface $commandBus): Response
     {
         $decreaseAwayCommand = new DecreaseAwayPoints($game->getId());
@@ -115,6 +127,8 @@ class GameCommandController extends AbstractController
     }
 
     #[Route('/delete/{id}', name: 'app_game_delete', methods: ['POST'])]
+    #[IsGranted('GAME_EDIT', subject: 'game')]
+    #[IsCsrfTokenValid('delete')]
     public function delete(Request $request, Game $game, MessageBusInterface $commandBus): Response
     {
         $deleteGameCommand = new DeleteGame($game->getId());
@@ -124,6 +138,7 @@ class GameCommandController extends AbstractController
     }
 
     #[Route('/{game_id}/newevent', name: 'app_event_new', methods: ['POST'])]
+    #[IsGranted('GAME_EDIT', subject: 'game')]
     public function gameEventNew(Request $request, #[MapEntity(mapping: ['game_id' => 'id'])] Game $game, CommandBus $commandBus): Response
     {
         $form = $this->createForm(GameEventType::class);
