@@ -82,8 +82,12 @@ Prioritized findings and recommendations from a code analysis of the app
 
 ## 🟢 Project hygiene
 
-- [ ] **Add tests.** `tests/` is empty. Cover the command handlers and the
-  authorization/ownership logic once added.
+- [x] **Add tests.** Installed `symfony/test-pack` (PHPUnit 13). Added:
+  `GameVoterTest` (ownership authorization), `IncreaseHomePointsHandlerTest`
+  (scoring + `GameStateChanged` dispatch), and `SecuritySmokeTest` (public
+  landing page, `/new` redirects to login, score routes reject GET). 9 tests,
+  16 assertions, green. Next: DB-backed functional tests for the non-owner
+  403 path (needs test fixtures — pairs with the migration work).
 - [ ] **Add migrations.** `migrations/` is empty. Generate a baseline migration
   rather than relying on `schema:update`.
 - [ ] **Switch `User::$roles` from Doctrine `array` to `json`** (portable,
