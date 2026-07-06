@@ -27,8 +27,23 @@ class GameProjector
 
     public function projectReadModels(): void
     {
-        file_put_contents($this->webRoot . '/nextgames.json', json_encode($this->toReadModel($this->gameRepository->findNextGames())));
-        file_put_contents($this->webRoot . '/lastgames.json', json_encode($this->toReadModel($this->gameRepository->findLastGames())));
+        $this->writeJson('/nextgames.json', $this->toReadModel($this->gameRepository->findNextGames()));
+        $this->writeJson('/lastgames.json', $this->toReadModel($this->gameRepository->findLastGames()));
+    }
+
+    /**
+     * Write the file atomically: a browser fetching the JSON never observes a
+     * half-written file, since the rename is atomic on the same filesystem.
+     *
+     * @param array<int, array<string, mixed>> $data
+     */
+    private function writeJson(string $filename, array $data): void
+    {
+        $target = $this->webRoot . $filename;
+        $tmp = $target . '.' . bin2hex(random_bytes(4)) . '.tmp';
+
+        file_put_contents($tmp, json_encode($data));
+        rename($tmp, $target);
     }
 
     /**

@@ -3,7 +3,7 @@
 namespace App\Game\Application\Command;
 
 use App\Entity\Game;
-use App\Game\Application\Event\GameCreated;
+use App\Game\Application\Event\GameStateChanged;
 use App\Repository\GameRepository;
 use App\Shared\Domain\EventBus;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
@@ -22,10 +22,9 @@ class CreateGameHandler
         $newGame->setAway($game->getAway());
         $newGame->setLocation($game->getLocation());
         $newGame->setDatetime($game->getDatetime());
-        $newGame->setOwner($game->getOwner());
 
         $this->gameRepository->save($newGame, true);
 
-        $this->eventBus->dispatch(new GameCreated());
+        $this->eventBus->dispatch(new GameStateChanged());
     }
 }

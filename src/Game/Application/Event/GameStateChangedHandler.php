@@ -6,11 +6,11 @@ use App\Game\Infrastructure\GameProjector;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 
 #[AsMessageHandler(bus: 'event.bus')]
-class GameCreatedHandler
+class GameStateChangedHandler
 {
     public function __construct(private GameProjector $gameProjector) {}
 
-    public function __invoke(GameCreated $event): void
+    public function __invoke(GameStateChanged $event): void
     {
         $this->gameProjector->projectReadModels();
     }

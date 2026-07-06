@@ -59,23 +59,26 @@ Prioritized findings and recommendations from a code analysis of the app
 
 ## 🟡 Architecture / dead code
 
-- [ ] **Remove or use the query side.** `QueryBus`, `GetLastGames`, and
-  `GetLastGamesHandler` (empty `__invoke`) are wired but unused; `GameQueryController::index`
-  injects `GameRepository` and ignores it, reading static JSON instead. Either
-  delete the query-bus scaffolding or route reads through it.
+> ✅ Batch done (commit pending). Removed the unused query side; routed all
+> writes through a single `GameStateChanged` domain event on the event bus;
+> made the projector write JSON atomically (temp + rename). Decisions: query
+> side removed (not wired), read models hardened (not migrated off files).
 
-- [ ] **Make projection triggering consistent.** `CreateGameHandler` dispatches
-  a `GameCreated` event → projector (clean). But `IncreaseHomePointsHandler`,
-  `UpdateGameHandler`, `DeleteGameHandler`, etc. call `projectReadModels()`
-  directly. Pick one pattern — domain events (`PointsChanged`, `GameUpdated`,
-  `GameDeleted`) match the design you started.
+- [x] **Remove or use the query side.** Removed `QueryBus`, `GetLastGames`,
+  `GetLastGamesHandler`, the Shared `QueryBus`/`Query` interfaces, the
+  `query.bus` in messenger.yaml, and the unused `GameRepository` injection in
+  `GameQueryController::index`.
 
-- [ ] **Reconsider file-based read models.** `GameProjector` does non-atomic
-  `file_put_contents` into `public/` — breaks on read-only/containerized or
-  multi-instance deploys, with a torn-read race. Confirm publishing all games'
-  data publicly is intended (public ticker).
+- [x] **Make projection triggering consistent.** All mutating handlers now
+  dispatch a single `GameStateChanged` event on the event bus; one
+  `GameStateChangedHandler` rebuilds the read models. Replaced the old
+  `GameCreated`/`GameCreatedHandler`.
 
-- [ ] **`CreateGameHandler` sets the owner twice** — harmless duplicate, tidy up.
+- [x] **Reconsider file-based read models.** Kept the public-JSON ticker but
+  made writes atomic (temp file + `rename`), removing the torn-read race.
+  Multi-instance / read-only-fs deploys remain a known limitation (documented).
+
+- [x] **`CreateGameHandler` sets the owner twice** — removed the duplicate.
 
 ## 🟢 Project hygiene
 

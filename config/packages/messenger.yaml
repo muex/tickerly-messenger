@@ -6,9 +6,6 @@ framework:
                 middleware:
                     - validation
                     - doctrine_transaction
-            query.bus:
-                middleware:
-                    - validation
             event.bus:
                 default_middleware: allow_no_handlers
                 middleware:
