@@ -101,6 +101,40 @@ Prioritized findings and recommendations from a code analysis of the app
 - [ ] Minor: `private ?int $homepoints =0;` spacing; consider `NOT NULL
   default 0` for score columns instead of nullable.
 
+## 🔵 Feature ideas
+
+- [ ] **Better URL scheme for games.** The current routes are inconsistent and
+  not shareable: `/show/{id}`, `/new`, `/{id}/edit`, `/delete/{id}`,
+  `/{id}/increasehome`, `/{game_id}/newevent` — mixing verb-first and id-first
+  with no common prefix, and exposing bare numeric ids. Move to a consistent,
+  RESTful, slugged scheme:
+  - `/games` (index), `/games/new`, `/games/{id}-{slug}` (show),
+    `/games/{id}-{slug}/edit`, and score/event/delete as sub-paths or a small
+    action API under the game.
+  - Slug = e.g. `home-vs-away` (slugger on team names); route can accept
+    `{id}` and ignore/redirect on slug mismatch so links stay stable.
+  - Add a `Game::getSlug()` (or a `slug` column if we want it queryable) and use
+    `#[Route('/games/{id}-{slug<[a-z0-9-]+>}', ...)]`.
+  - **Migration/back-compat:** keep a `/show/{id}` → 301 redirect so existing
+    shared links (and the projector-written `nextgames.json`/`lastgames.json`)
+    don't break; update the client-side `/show/${id}` link in
+    `templates/game/index.html.twig` and add `slug` to the read model.
+  - Pairs naturally with social sharing below (nice URLs are half of it).
+
+- [ ] **Social sharing for a game.** Make an individual game page shareable so
+  people can post a live ticker link:
+  - Add Open Graph + Twitter Card meta tags on the game show page (title =
+    `Home : Away`, description = score + location + kickoff, `og:type=website`,
+    canonical URL). Needs a `{% block head_meta %}` in `templates/base.html.twig`
+    (there's only a `title` block today) that `show.html.twig` fills in.
+  - A share affordance: a "Teilen" button using the Web Share API
+    (`navigator.share`) with a copy-link fallback; optionally WhatsApp/Telegram
+    intents since this is a live-score use case.
+  - Optional stretch: a dynamic OG preview image (scoreboard) per game so link
+    unfurls show the current score — can be a cached, projector-style asset.
+  - Depends on the URL scheme item for clean, stable share links; and note the
+    page is already publicly readable, so no auth work is needed to share.
+
 ## Suggested order
 
 1. Authorization (#1, #2)
