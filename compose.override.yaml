@@ -1,0 +1,11 @@
+services:
+  database:
+    ports:
+      # Exposes the DB on the host for local dev/tests. Prod does not use this file.
+      - "3306:3306"
+
+###> symfony/mailer ###
+  mailer:
+    image: schickling/mailcatcher
+    ports: ["1025", "1080"]
+###< symfony/mailer ###

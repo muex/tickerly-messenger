@@ -88,10 +88,16 @@ Prioritized findings and recommendations from a code analysis of the app
   landing page, `/new` redirects to login, score routes reject GET). 9 tests,
   16 assertions, green. Next: DB-backed functional tests for the non-owner
   403 path (needs test fixtures — pairs with the migration work).
-- [ ] **Add migrations.** `migrations/` is empty. Generate a baseline migration
-  rather than relying on `schema:update`.
-- [ ] **Switch `User::$roles` from Doctrine `array` to `json`** (portable,
-  modern).
+- [x] **Add migrations.** Added a baseline migration (`Version20260706192221`)
+  with the full schema, generated against MariaDB. Aligned dev/test with prod's
+  engine: `compose.yaml` now runs **MariaDB 10.11** (self-provisioning `app`
+  user + `tickerly` / `tickerly_test` DBs via `docker/db/init`), replacing the
+  stale Postgres flex compose files. `.env` default is now MariaDB. Dev + test
+  DBs migrate cleanly and validate in sync; the suite is green against MariaDB.
+  Note: prod `serverVersion` in `.env` may need adjusting to the exact 10.11.x.
+- [x] ~~**Switch `User::$roles` from Doctrine `array` to `json`.**~~ Non-issue:
+  an untyped `#[ORM\Column]` on an `array` property already maps to `json`
+  (baseline shows `roles JSON NOT NULL`). No change needed.
 - [ ] Minor: `private ?int $homepoints =0;` spacing; consider `NOT NULL
   default 0` for score columns instead of nullable.
 
