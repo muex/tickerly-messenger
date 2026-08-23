@@ -6,9 +6,11 @@ use App\Repository\UserRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Bridge\Doctrine\Types\UuidType;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Uid\Uuid;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: '`user`')]
@@ -16,9 +18,8 @@ use Symfony\Component\Security\Core\User\UserInterface;
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
-    #[ORM\GeneratedValue]
-    #[ORM\Column]
-    private ?int $id = null;
+    #[ORM\Column(type: UuidType::NAME, unique: true)]
+    private Uuid $id;
 
     #[ORM\Column(length: 180, unique: true)]
     private ?string $email = null;
@@ -44,10 +45,13 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function __construct()
     {
+        // Assigned rather than generated, so the id exists before the flush.
+        // v7 keeps the values time-ordered, which keeps the index compact.
+        $this->id = Uuid::v7();
         $this->games = new ArrayCollection();
     }
 
-    public function getId(): ?int
+    public function getId(): Uuid
     {
         return $this->id;
     }
@@ -118,6 +122,29 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->password = $password;
 
         return $this;
+    }
+
+    /**
+     * Sessions that were written before the switch to UUID ids still carry an
+     * integer id, which would fatal on the now typed property. Swapping it for
+     * an id that matches no row lets the user provider fail to refresh the
+     * user, so a stale session ends in a clean logout instead of a 500.
+     *
+     * Can be removed once no pre-UUID session can be alive any more.
+     *
+     * @param array<string, mixed> $data
+     */
+    public function __unserialize(array $data): void
+    {
+        $prefix = \sprintf("\0%s\0", self::class);
+
+        if (isset($data[$prefix . 'id']) && !$data[$prefix . 'id'] instanceof Uuid) {
+            $data[$prefix . 'id'] = Uuid::v7();
+        }
+
+        foreach ($data as $name => $value) {
+            $this->{str_replace($prefix, '', $name)} = $value;
+        }
     }
 
     /**

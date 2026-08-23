@@ -56,7 +56,8 @@ class GameProjector
 
         foreach ($games as $game) {
             $readModel[] = [
-                'id' => $game->getId(),
+                'id' => (string) $game->getId(),
+                'slug' => $game->getSlug(),
                 'home' => $game->getHome(),
                 'away' => $game->getAway(),
                 'location' => $game->getLocation(),

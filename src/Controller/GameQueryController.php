@@ -8,16 +8,18 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 
-#[Route('/')]
+#[Route('/games')]
 class GameQueryController extends AbstractController
 {
-    #[Route('/games', name: 'app_game_index', methods: ['GET'])]
+    #[Route('', name: 'app_game_index', methods: ['GET'])]
     public function index(): Response
     {
         return $this->render('game/index.html.twig');
     }
 
-    #[Route('/show/{id}', name: 'app_game_show', methods: ['GET'])]
+    // A slug always carries at least one hyphen ("falcons-vs-sharks-2026-08-25"),
+    // so this can never swallow /games/new regardless of route ordering.
+    #[Route('/{slug<[a-z0-9]+(?:-[a-z0-9]+)+>}', name: 'app_game_show', methods: ['GET'])]
     public function show(Game $game): Response
     {
         // A deactivated game stays reachable for its owner and for admins,

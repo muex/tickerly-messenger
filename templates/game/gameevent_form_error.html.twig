@@ -10,7 +10,7 @@
         {{ include('game/_game_event_form.html.twig') }}
 
         <div class="mt-6 border-t border-black/10 pt-5">
-            <a class="text-sm text-ink-500 transition hover:text-ink-900" href="{{ path('app_game_show', {'id': game.id}) }}">&larr; Zurück zum Spiel</a>
+            <a class="text-sm text-ink-500 transition hover:text-ink-900" href="{{ path('app_game_show', {'slug': game.slug}) }}">&larr; Zurück zum Spiel</a>
         </div>
     </div>
 {% endblock %}

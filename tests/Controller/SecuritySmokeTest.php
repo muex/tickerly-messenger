@@ -17,7 +17,7 @@ class SecuritySmokeTest extends WebTestCase
     public function testCreateGameRequiresLogin(): void
     {
         $client = static::createClient();
-        $client->request('GET', '/new');
+        $client->request('GET', '/games/new');
 
         $this->assertResponseRedirects('/login');
     }
@@ -26,7 +26,7 @@ class SecuritySmokeTest extends WebTestCase
     {
         $client = static::createClient();
         // Scoring must not be triggerable by a GET (link, prefetch, crawler).
-        $client->request('GET', '/1/increasehome');
+        $client->request('GET', '/games/falcons-vs-sharks-2026-08-25/increasehome');
 
         $this->assertResponseStatusCodeSame(405);
     }

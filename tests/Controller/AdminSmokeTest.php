@@ -27,7 +27,7 @@ class AdminSmokeTest extends WebTestCase
 
     public static function toggleRoutes(): iterable
     {
-        yield 'user' => ['/admin/users/1/toggle'];
-        yield 'game' => ['/admin/games/1/toggle'];
+        yield 'user' => ['/admin/users/01996f3a-4c21-7b2e-9f10-2c8d5e7a1b44/toggle'];
+        yield 'game' => ['/admin/games/01996f3a-4c21-7b2e-9f10-2c8d5e7a1b44/toggle'];
     }
 }
