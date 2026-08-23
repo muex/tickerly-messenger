@@ -57,6 +57,13 @@ Prioritized findings and recommendations from a code analysis of the app
   games instead of the most recent. Change to `DESC`. (`findNextGames` orders by
   `id ASC` rather than `datetime` — make consistent.)
 
+- [x] **Deleting a game with ticker events failed.** `Game::$gameEvents` had
+  neither `cascade` nor `orphanRemoval`, so `DeleteGame` on a game that already
+  had events died with a 1451 integrity constraint violation (500). The events
+  belong to their game and have no life of their own, so the association now
+  cascades `persist`/`remove` with `orphanRemoval: true` — no schema change
+  needed, Doctrine deletes the children before the parent.
+
 ## 🟡 Architecture / dead code
 
 > ✅ Batch done (commit pending). Removed the unused query side; routed all
