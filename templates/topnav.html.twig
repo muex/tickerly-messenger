@@ -9,6 +9,11 @@
             <li>
                 <a class="rounded-full px-3 py-1.5 text-ink-600 transition hover:bg-black/5 hover:text-ink-900" href="{{ path('app_game_index') }}">Spiele</a>
             </li>
+            {% if is_granted('ROLE_ADMIN') %}
+                <li>
+                    <a class="rounded-full px-3 py-1.5 text-ink-600 transition hover:bg-black/5 hover:text-ink-900" href="{{ path('app_admin_dashboard') }}">Admin</a>
+                </li>
+            {% endif %}
             {% if is_granted('ROLE_USER') %}
                 <li class="hidden px-3 py-1.5 text-ink-400 sm:block">{{ app.user.email }}</li>
                 <li>

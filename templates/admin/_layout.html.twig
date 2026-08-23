@@ -1,0 +1,35 @@
+{% extends 'base.html.twig' %}
+
+{% block main_width %}max-w-5xl{% endblock %}
+
+{% block body %}
+    <div class="mb-8 flex flex-wrap items-end justify-between gap-4">
+        <div>
+            <p class="text-xs font-semibold uppercase tracking-wide text-brand-500">Administration</p>
+            <h1 class="mt-1 text-3xl font-semibold tracking-tight text-ink-900">{% block heading %}{% endblock %}</h1>
+        </div>
+
+        <nav class="flex items-center gap-1 rounded-full bg-black/5 p-1 text-sm font-medium">
+            {% set tabs = [
+                { route: 'app_admin_dashboard', label: 'Übersicht' },
+                { route: 'app_admin_users', label: 'Nutzer' },
+                { route: 'app_admin_games', label: 'Spiele' }
+            ] %}
+            {% for tab in tabs %}
+                {% set is_current = app.request.attributes.get('_route') == tab.route %}
+                <a class="rounded-full px-4 py-1.5 transition {{ is_current ? 'bg-white text-ink-900 shadow-sm' : 'text-ink-600 hover:text-ink-900' }}"
+                   href="{{ path(tab.route) }}">{{ tab.label }}</a>
+            {% endfor %}
+        </nav>
+    </div>
+
+    {% for label, messages in app.flashes(['success', 'error']) %}
+        {% for message in messages %}
+            <div class="mb-4 rounded-2xl px-5 py-3 text-sm font-medium {{ label == 'error' ? 'bg-red-50 text-red-700 ring-1 ring-red-200' : 'bg-brand-50 text-brand-600 ring-1 ring-brand-200' }}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endfor %}
+
+    {% block admin_content %}{% endblock %}
+{% endblock %}

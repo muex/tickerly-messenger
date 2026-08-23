@@ -1,0 +1,5 @@
+{# Renders the activation state of a user or game. #}
+<span class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold {{ active ? 'bg-brand-50 text-brand-600' : 'bg-black/5 text-ink-500' }}">
+    <span class="h-1.5 w-1.5 rounded-full {{ active ? 'bg-brand-500' : 'bg-ink-400' }}"></span>
+    {{ active ? 'Aktiv' : 'Inaktiv' }}
+</span>

@@ -34,6 +34,13 @@ class Game
     #[ORM\Column(nullable: true)]
     private ?int $awaypoints = 0;
 
+    /**
+     * Deactivated games are hidden from the public lists and pages,
+     * but stay editable for their owner and visible in the admin area.
+     */
+    #[ORM\Column(options: ['default' => true])]
+    private bool $active = true;
+
     #[ORM\OneToMany(mappedBy: 'game', targetEntity: GameEvent::class)]
     #[ORM\OrderBy(["timecode" => 'DESC'])]
     private Collection $gameEvents;
@@ -120,6 +127,18 @@ class Game
     public function setAwaypoints(?int $awaypoints): self
     {
         $this->awaypoints = $awaypoints;
+
+        return $this;
+    }
+
+    public function isActive(): bool
+    {
+        return $this->active;
+    }
+
+    public function setActive(bool $active): self
+    {
+        $this->active = $active;
 
         return $this;
     }

@@ -32,6 +32,13 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column]
     private ?string $password = null;
 
+    /**
+     * Deactivated users keep their data but can no longer log in
+     * (enforced by App\Security\UserChecker).
+     */
+    #[ORM\Column(options: ['default' => true])]
+    private bool $active = true;
+
     #[ORM\OneToMany(mappedBy: 'owner', targetEntity: Game::class)]
     private Collection $games;
 
@@ -82,6 +89,18 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setRoles(array $roles): self
     {
         $this->roles = $roles;
+
+        return $this;
+    }
+
+    public function isActive(): bool
+    {
+        return $this->active;
+    }
+
+    public function setActive(bool $active): self
+    {
+        $this->active = $active;
 
         return $this;
     }

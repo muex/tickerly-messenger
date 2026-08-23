@@ -1,0 +1,50 @@
+{% extends 'admin/_layout.html.twig' %}
+
+{% block title %}Admin – Spiele{% endblock %}
+{% block heading %}Spiele{% endblock %}
+
+{% block admin_content %}
+    <div class="card overflow-hidden rounded-3xl">
+        <table class="w-full text-left text-sm">
+            <thead class="border-b border-black/5 text-xs font-semibold uppercase tracking-wide text-ink-400">
+                <tr>
+                    <th class="px-5 py-3">Spiel</th>
+                    <th class="px-5 py-3">Anpfiff</th>
+                    <th class="px-5 py-3">Besitzer</th>
+                    <th class="px-5 py-3">Status</th>
+                    <th class="px-5 py-3 text-right">Aktion</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-black/5">
+                {% for game in games %}
+                    <tr>
+                        <td class="px-5 py-3.5">
+                            <a class="font-medium text-ink-900 hover:text-brand-500" href="{{ path('app_game_show', {'id': game.id}) }}">
+                                {{ game.home }} : {{ game.away }}
+                            </a>
+                            <p class="text-xs text-ink-400">{{ game.location }} · {{ game.homepoints }} : {{ game.awaypoints }}</p>
+                        </td>
+                        <td class="px-5 py-3.5 text-ink-500">{{ game.datetime ? game.datetime|date('d.m.Y H:i') : '' }}</td>
+                        <td class="px-5 py-3.5 text-ink-500">{{ game.owner.email }}</td>
+                        <td class="px-5 py-3.5">{% include 'admin/_status_badge.html.twig' with { active: game.active } only %}</td>
+                        <td class="px-5 py-3.5 text-right">
+                            <form method="post" action="{{ path('app_admin_game_toggle', {'id': game.id}) }}"
+                                  {% if game.active %}onsubmit="return confirm('Dieses Spiel wirklich deaktivieren?');"{% endif %}>
+                                <input type="hidden" name="_token" value="{{ csrf_token('admin_toggle') }}">
+                                <button class="rounded-full px-4 py-1.5 text-xs font-semibold transition active:scale-95 {{ game.active ? 'bg-black/5 text-ink-700 hover:bg-black/10' : 'bg-ink-900 text-white hover:bg-ink-700' }}">
+                                    {{ game.active ? 'Deaktivieren' : 'Aktivieren' }}
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr><td class="px-5 py-4 text-ink-500" colspan="5">Noch keine Spiele angelegt.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <p class="mt-4 text-sm text-ink-500">
+        Deaktivierte Spiele verschwinden aus den öffentlichen Listen und sind nur noch für Besitzer und Admins erreichbar.
+    </p>
+{% endblock %}

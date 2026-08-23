@@ -103,6 +103,15 @@ Prioritized findings and recommendations from a code analysis of the app
 
 ## 🔵 Feature ideas
 
+- [x] **Admin area.** `/admin` (ROLE_ADMIN, guarded by `access_control`) with an
+  overview plus user and game lists that activate/deactivate entries. Both
+  entities carry an `active` flag: deactivated users are refused at login by
+  `App\Security\UserChecker`, deactivated games drop out of the read models and
+  the public show page (owner and admins still see them). Game activation goes
+  through the command bus (`SetGameActive` → `GameStateChanged`) so the JSON
+  read models are rebuilt. `app:user:promote` grants/revokes `ROLE_ADMIN` and
+  bootstraps the first admin.
+
 - [ ] **Better URL scheme for games.** The current routes are inconsistent and
   not shareable: `/show/{id}`, `/new`, `/{id}/edit`, `/delete/{id}`,
   `/{id}/increasehome`, `/{game_id}/newevent` — mixing verb-first and id-first
