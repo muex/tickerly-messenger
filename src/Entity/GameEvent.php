@@ -4,14 +4,15 @@ namespace App\Entity;
 
 use App\Repository\GameEventRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Bridge\Doctrine\Types\UuidType;
+use Symfony\Component\Uid\Uuid;
 
 #[ORM\Entity(repositoryClass: GameEventRepository::class)]
 class GameEvent
 {
     #[ORM\Id]
-    #[ORM\GeneratedValue]
-    #[ORM\Column]
-    private ?int $id = null;
+    #[ORM\Column(type: UuidType::NAME, unique: true)]
+    private Uuid $id;
 
     #[ORM\Column(length: 10, nullable: true)]
     private ?string $timecode = null;
@@ -22,7 +23,12 @@ class GameEvent
     #[ORM\ManyToOne(inversedBy: 'gameEvents')]
     private ?Game $game = null;
 
-    public function getId(): ?int
+    public function __construct()
+    {
+        $this->id = Uuid::v7();
+    }
+
+    public function getId(): Uuid
     {
         return $this->id;
     }

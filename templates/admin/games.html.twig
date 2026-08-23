@@ -19,7 +19,7 @@
                 {% for game in games %}
                     <tr>
                         <td class="px-5 py-3.5">
-                            <a class="font-medium text-ink-900 hover:text-brand-500" href="{{ path('app_game_show', {'id': game.id}) }}">
+                            <a class="font-medium text-ink-900 hover:text-brand-500" href="{{ path('app_game_show', {'slug': game.slug}) }}">
                                 {{ game.home }} : {{ game.away }}
                             </a>
                             <p class="text-xs text-ink-400">{{ game.location }} · {{ game.homepoints }} : {{ game.awaypoints }}</p>

@@ -3,17 +3,13 @@
 namespace App\Game\Application\Command;
 
 use App\Shared\Domain\Command;
+use Symfony\Component\Uid\Uuid;
 
 class IncreaseAwayPoints implements Command
 {
-    private $gameId;
+    public function __construct(private Uuid $gameId) {}
 
-    public function __construct($gameId)
-    {
-        $this->gameId = $gameId;
-    }
-
-    public function getGameId()
+    public function getGameId(): Uuid
     {
         return $this->gameId;
     }

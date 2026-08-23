@@ -34,7 +34,7 @@
             const dt = new Date(game.datetime.date);
 
             const card = document.createElement("a");
-            card.href = "/show/" + encodeURIComponent(game.id);
+            card.href = "/games/" + encodeURIComponent(game.slug);
             card.className = "card block rounded-3xl p-6 text-center transition duration-200 hover:-translate-y-0.5 hover:shadow-lg";
 
             card.appendChild(line("text-base font-medium text-ink-500", `${game.home} : ${game.away}`));
