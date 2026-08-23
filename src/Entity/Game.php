@@ -50,7 +50,11 @@ class Game
     #[ORM\Column(options: ['default' => true])]
     private bool $active = true;
 
-    #[ORM\OneToMany(mappedBy: 'game', targetEntity: GameEvent::class)]
+    /**
+     * Events belong to their game and have no life of their own: removing the
+     * game removes them too, instead of failing on the foreign key.
+     */
+    #[ORM\OneToMany(mappedBy: 'game', targetEntity: GameEvent::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
     #[ORM\OrderBy(["timecode" => 'DESC'])]
     private Collection $gameEvents;
 
