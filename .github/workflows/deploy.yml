@@ -85,6 +85,14 @@ jobs:
             --exclude='public/lastgames.json' \
             ./ "${{ vars.SSH_USER }}@${{ vars.SSH_HOST }}:${{ vars.DEPLOY_PATH }}/"
 
+      # Bring the prod schema up to date before the new code serves traffic.
+      # --allow-no-migration keeps deploys without pending migrations green.
+      - name: Run database migrations on server
+        run: |
+          ssh -i ~/.ssh/deploy_key -p "${{ vars.SSH_PORT }}" \
+            "${{ vars.SSH_USER }}@${{ vars.SSH_HOST }}" \
+            "cd ${{ vars.DEPLOY_PATH }} && APP_ENV=prod php bin/console doctrine:migrations:migrate --no-interaction --allow-no-migration"
+
       # Warm the prod cache on the server so paths resolve to the real deploy path.
       - name: Clear & warm prod cache on server
         run: |
