@@ -14,7 +14,6 @@ use App\Game\Application\Command\IncreaseAwayPoints;
 use App\Game\Application\Command\IncreaseHomePoints;
 use App\Game\Application\Command\UpdateGame;
 use App\Game\Infrastructure\CommandBus;
-use Symfony\Bridge\Doctrine\Attribute\MapEntity;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -23,6 +22,7 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Attribute\IsCsrfTokenValid;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
+#[Route('/games')]
 class GameCommandController extends AbstractController
 {
     #[Route('/new', name: 'app_game_new', methods: ['GET', 'POST'])]
@@ -53,7 +53,7 @@ class GameCommandController extends AbstractController
         ]);
     }
 
-    #[Route('/{id}/edit', name: 'app_game_edit', methods: ['GET', 'POST'])]
+    #[Route('/{slug}/edit', name: 'app_game_edit', methods: ['GET', 'POST'])]
     #[IsGranted('GAME_EDIT', subject: 'game')]
     public function edit(Request $request, Game $game, CommandBus $commandBus): Response
     {
@@ -79,7 +79,7 @@ class GameCommandController extends AbstractController
         ]);
     }
 
-    #[Route('/{id}/increasehome', name: 'app_game_increase_home', methods: ['POST'])]
+    #[Route('/{slug}/increasehome', name: 'app_game_increase_home', methods: ['POST'])]
     #[IsGranted('GAME_EDIT', subject: 'game')]
     #[IsCsrfTokenValid('score')]
     public function increaseHomePoints(Request $request, Game $game, MessageBusInterface $commandBus): Response
@@ -88,10 +88,10 @@ class GameCommandController extends AbstractController
         $increaseHomeCommand = new IncreaseHomePoints($id);
         $commandBus->dispatch($increaseHomeCommand);
 
-        return $this->redirectToRoute('app_game_show', ['id' => $game->getId()]);
+        return $this->redirectToRoute('app_game_show', ['slug' => $game->getSlug()]);
     }
 
-    #[Route('/{id}/decreasehome', name: 'app_game_decrease_home', methods: ['POST'])]
+    #[Route('/{slug}/decreasehome', name: 'app_game_decrease_home', methods: ['POST'])]
     #[IsGranted('GAME_EDIT', subject: 'game')]
     #[IsCsrfTokenValid('score')]
     public function decreaseHomePoints(Request $request, Game $game, MessageBusInterface $commandBus): Response
@@ -100,10 +100,10 @@ class GameCommandController extends AbstractController
         $increaseHomeCommand = new DecreaseHomePoints($id);
         $commandBus->dispatch($increaseHomeCommand);
 
-        return $this->redirectToRoute('app_game_show', ['id' => $game->getId()]);
+        return $this->redirectToRoute('app_game_show', ['slug' => $game->getSlug()]);
     }
 
-    #[Route('/{id}/increaseaway', name: 'app_game_increase_away', methods: ['POST'])]
+    #[Route('/{slug}/increaseaway', name: 'app_game_increase_away', methods: ['POST'])]
     #[IsGranted('GAME_EDIT', subject: 'game')]
     #[IsCsrfTokenValid('score')]
     public function increaseAwayPoints(Request $request, Game $game, MessageBusInterface $commandBus): Response
@@ -112,10 +112,10 @@ class GameCommandController extends AbstractController
         $increaseAwayCommand = new IncreaseAwayPoints($id);
         $commandBus->dispatch($increaseAwayCommand);
 
-        return $this->redirectToRoute('app_game_show', ['id' => $game->getId()]);
+        return $this->redirectToRoute('app_game_show', ['slug' => $game->getSlug()]);
     }
 
-    #[Route('/{id}/decreaseaway', name: 'app_game_decrease_away', methods: ['POST'])]
+    #[Route('/{slug}/decreaseaway', name: 'app_game_decrease_away', methods: ['POST'])]
     #[IsGranted('GAME_EDIT', subject: 'game')]
     #[IsCsrfTokenValid('score')]
     public function decreaseAwayPoints(Request $request, Game $game, MessageBusInterface $commandBus): Response
@@ -123,10 +123,10 @@ class GameCommandController extends AbstractController
         $decreaseAwayCommand = new DecreaseAwayPoints($game->getId());
         $commandBus->dispatch($decreaseAwayCommand);
 
-        return $this->redirectToRoute('app_game_show', ['id' => $game->getId()]);
+        return $this->redirectToRoute('app_game_show', ['slug' => $game->getSlug()]);
     }
 
-    #[Route('/delete/{id}', name: 'app_game_delete', methods: ['POST'])]
+    #[Route('/{slug}/delete', name: 'app_game_delete', methods: ['POST'])]
     #[IsGranted('GAME_EDIT', subject: 'game')]
     #[IsCsrfTokenValid('delete')]
     public function delete(Request $request, Game $game, MessageBusInterface $commandBus): Response
@@ -137,9 +137,9 @@ class GameCommandController extends AbstractController
         return $this->redirectToRoute('app_game_index', [], Response::HTTP_SEE_OTHER);
     }
 
-    #[Route('/{game_id}/newevent', name: 'app_event_new', methods: ['POST'])]
+    #[Route('/{slug}/events', name: 'app_event_new', methods: ['POST'])]
     #[IsGranted('GAME_EDIT', subject: 'game')]
-    public function gameEventNew(Request $request, #[MapEntity(mapping: ['game_id' => 'id'])] Game $game, CommandBus $commandBus): Response
+    public function gameEventNew(Request $request, Game $game, CommandBus $commandBus): Response
     {
         $form = $this->createForm(GameEventType::class);
         $form->handleRequest($request);
@@ -155,7 +155,7 @@ class GameCommandController extends AbstractController
             );
             $commandBus->dispatch($gameEventCommand);
 
-            return $this->redirectToRoute('app_game_show', ['id' => $game->getId()]);
+            return $this->redirectToRoute('app_game_show', ['slug' => $game->getSlug()]);
         }
 
         return $this->render('game/gameevent_form_error.html.twig', [

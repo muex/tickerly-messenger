@@ -9,17 +9,19 @@ use App\Game\Application\Event\GameStateChanged;
 use App\Repository\GameRepository;
 use App\Shared\Domain\EventBus;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Uid\Uuid;
 
 class SetGameActiveHandlerTest extends TestCase
 {
     public function testItDeactivatesTheGamePersistsAndSignalsChange(): void
     {
         $game = new Game();
+        $gameId = Uuid::v7();
 
         $repository = $this->createMock(GameRepository::class);
         $repository->expects($this->once())
             ->method('find')
-            ->with(42)
+            ->with($gameId)
             ->willReturn($game);
         $repository->expects($this->once())
             ->method('save')
@@ -32,7 +34,7 @@ class SetGameActiveHandlerTest extends TestCase
             ->with($this->isInstanceOf(GameStateChanged::class));
 
         $handler = new SetGameActiveHandler($repository, $eventBus);
-        $handler(new SetGameActive(42, false));
+        $handler(new SetGameActive($gameId, false));
 
         $this->assertFalse($game->isActive());
     }

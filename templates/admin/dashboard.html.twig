@@ -36,7 +36,7 @@
         {% for game in latest_games %}
             <div class="card flex flex-wrap items-center justify-between gap-3 rounded-2xl px-5 py-3.5">
                 <div>
-                    <a class="font-medium text-ink-900 hover:text-brand-500" href="{{ path('app_game_show', {'id': game.id}) }}">
+                    <a class="font-medium text-ink-900 hover:text-brand-500" href="{{ path('app_game_show', {'slug': game.slug}) }}">
                         {{ game.home }} : {{ game.away }}
                     </a>
                     <p class="text-sm text-ink-400">

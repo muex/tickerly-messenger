@@ -7,14 +7,23 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Bridge\Doctrine\Types\UuidType;
+use Symfony\Component\Uid\Uuid;
 
 #[ORM\Entity(repositoryClass: GameRepository::class)]
 class Game
 {
     #[ORM\Id]
-    #[ORM\GeneratedValue]
-    #[ORM\Column]
-    private ?int $id = null;
+    #[ORM\Column(type: UuidType::NAME, unique: true)]
+    private Uuid $id;
+
+    /**
+     * Identifies the game in every public URL. Assigned once when the game is
+     * created and never regenerated, so a ticker link stays valid even when
+     * the teams or the kickoff are corrected afterwards.
+     */
+    #[ORM\Column(length: 255, unique: true)]
+    private ?string $slug = null;
 
     #[ORM\Column(length: 255)]
     private ?string $location = null;
@@ -55,12 +64,27 @@ class Game
 
     public function __construct()
     {
+        // Assigned rather than generated, so the id exists before the flush.
+        // v7 keeps the values time-ordered, which keeps the index compact.
+        $this->id = Uuid::v7();
         $this->gameEvents = new ArrayCollection();
     }
 
-    public function getId(): ?int
+    public function getId(): Uuid
     {
         return $this->id;
+    }
+
+    public function getSlug(): ?string
+    {
+        return $this->slug;
+    }
+
+    public function setSlug(string $slug): self
+    {
+        $this->slug = $slug;
+
+        return $this;
     }
 
     public function getLocation(): ?string
