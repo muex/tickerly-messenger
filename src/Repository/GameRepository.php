@@ -40,12 +40,16 @@ class GameRepository extends ServiceEntityRepository
     }
 
     /**
+     * Only active games are public: a game an admin deactivated disappears
+     * from the ticker lists and the JSON read models.
+     *
      * @return Game[] Returns an array of Game objects
      */
     public function findNextGames(): array
     {
         return $this->createQueryBuilder('g')
             ->andWhere('g.datetime > :val')
+            ->andWhere('g.active = true')
             ->setParameter('val', new \DateTime('now'))
             ->orderBy('g.datetime', 'ASC')
             ->setMaxResults(10)
@@ -61,11 +65,47 @@ class GameRepository extends ServiceEntityRepository
     {
         return $this->createQueryBuilder('g')
             ->andWhere('g.datetime < :val')
+            ->andWhere('g.active = true')
             ->setParameter('val', new \DateTime('now'))
             ->orderBy('g.datetime', 'DESC')
             ->setMaxResults(10)
             ->getQuery()
             ->getResult()
             ;
+    }
+
+    /**
+     * All games, newest first, with their owner joined for the admin list.
+     *
+     * @return Game[]
+     */
+    public function findAllForAdmin(): array
+    {
+        return $this->createQueryBuilder('g')
+            ->addSelect('o')
+            ->join('g.owner', 'o')
+            ->orderBy('g.datetime', 'DESC')
+            ->getQuery()
+            ->getResult()
+        ;
+    }
+
+    /**
+     * @return array{total: int, active: int, inactive: int}
+     */
+    public function countByStatus(): array
+    {
+        $total = (int) $this->createQueryBuilder('g')
+            ->select('COUNT(g.id)')
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        $active = (int) $this->createQueryBuilder('g')
+            ->select('COUNT(g.id)')
+            ->andWhere('g.active = true')
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        return ['total' => $total, 'active' => $active, 'inactive' => $total - $active];
     }
 }

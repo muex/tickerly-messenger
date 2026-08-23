@@ -1,0 +1,53 @@
+{% extends 'admin/_layout.html.twig' %}
+
+{% block title %}Admin – Nutzer{% endblock %}
+{% block heading %}Nutzer{% endblock %}
+
+{% block admin_content %}
+    <div class="card overflow-hidden rounded-3xl">
+        <table class="w-full text-left text-sm">
+            <thead class="border-b border-black/5 text-xs font-semibold uppercase tracking-wide text-ink-400">
+                <tr>
+                    <th class="px-5 py-3">E-Mail</th>
+                    <th class="px-5 py-3">Rollen</th>
+                    <th class="px-5 py-3 text-right">Spiele</th>
+                    <th class="px-5 py-3">Status</th>
+                    <th class="px-5 py-3 text-right">Aktion</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-black/5">
+                {% for user in users %}
+                    {% set is_self = app.user and app.user.email == user.email %}
+                    <tr>
+                        <td class="px-5 py-3.5 font-medium text-ink-900">
+                            {{ user.email }}
+                            {% if is_self %}<span class="ml-1 text-xs font-normal text-ink-400">(du)</span>{% endif %}
+                        </td>
+                        <td class="px-5 py-3.5 text-ink-500">{{ user.roles|join(', ') }}</td>
+                        <td class="px-5 py-3.5 text-right tabular-nums text-ink-500">{{ user.games|length }}</td>
+                        <td class="px-5 py-3.5">{% include 'admin/_status_badge.html.twig' with { active: user.active } only %}</td>
+                        <td class="px-5 py-3.5 text-right">
+                            {% if is_self %}
+                                <span class="text-xs text-ink-400">eigenes Konto</span>
+                            {% else %}
+                                <form method="post" action="{{ path('app_admin_user_toggle', {'id': user.id}) }}"
+                                      {% if user.active %}onsubmit="return confirm('{{ user.email }} wirklich deaktivieren?');"{% endif %}>
+                                    <input type="hidden" name="_token" value="{{ csrf_token('admin_toggle') }}">
+                                    <button class="rounded-full px-4 py-1.5 text-xs font-semibold transition active:scale-95 {{ user.active ? 'bg-black/5 text-ink-700 hover:bg-black/10' : 'bg-ink-900 text-white hover:bg-ink-700' }}">
+                                        {{ user.active ? 'Deaktivieren' : 'Aktivieren' }}
+                                    </button>
+                                </form>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr><td class="px-5 py-4 text-ink-500" colspan="5">Noch keine Nutzer registriert.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <p class="mt-4 text-sm text-ink-500">
+        Deaktivierte Nutzer bleiben mit allen Daten erhalten, können sich aber nicht mehr anmelden.
+    </p>
+{% endblock %}
