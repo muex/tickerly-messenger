@@ -125,29 +125,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     }
 
     /**
-     * Sessions that were written before the switch to UUID ids still carry an
-     * integer id, which would fatal on the now typed property. Swapping it for
-     * an id that matches no row lets the user provider fail to refresh the
-     * user, so a stale session ends in a clean logout instead of a 500.
-     *
-     * Can be removed once no pre-UUID session can be alive any more.
-     *
-     * @param array<string, mixed> $data
-     */
-    public function __unserialize(array $data): void
-    {
-        $prefix = \sprintf("\0%s\0", self::class);
-
-        if (isset($data[$prefix . 'id']) && !$data[$prefix . 'id'] instanceof Uuid) {
-            $data[$prefix . 'id'] = Uuid::v7();
-        }
-
-        foreach ($data as $name => $value) {
-            $this->{str_replace($prefix, '', $name)} = $value;
-        }
-    }
-
-    /**
      * @see UserInterface
      */
     public function eraseCredentials(): void
