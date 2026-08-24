@@ -130,8 +130,9 @@ Prioritized findings and recommendations from a code analysis of the app
   ticker link survives a later correction of the team names; `/show/{id}` was
   dropped without a redirect (deliberate — see the migration note below). The
   admin toggles keep the UUID in their POST-only URLs. Read models now carry
-  `slug`, and `User::__unserialize()` turns sessions written before the switch
-  into a clean logout instead of a 500 (removable once those can't be alive).
+  `slug`. Sessions written before the switch were turned into a clean logout by
+  a temporary `User::__unserialize()`; it was removed on 2026-08-24, once no
+  such session could still be alive after the 2026-08-23 release.
 
 - [ ] **Social sharing for a game.** Make an individual game page shareable so
   people can post a live ticker link:
