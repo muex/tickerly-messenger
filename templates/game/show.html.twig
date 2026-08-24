@@ -3,6 +3,30 @@
 {% block title %}{{ game.home }} : {{ game.away }}{% endblock %}
 
 {% set is_owner = app.user and app.user.email == game.owner.email %}
+{% set share_url = url('app_game_show', {'slug': game.slug}) %}
+{% set share_title = game.home ~ ' ' ~ game.homepoints ~ ' : ' ~ game.awaypoints ~ ' ' ~ game.away %}
+{% set share_text = game.location ~ ' · ' ~ (game.datetime ? game.datetime|date('d.m.Y H:i') : '') %}
+
+{% block head_meta %}
+    <link rel="canonical" href="{{ share_url }}">
+    <meta name="description" content="{{ share_title }} — {{ share_text }}">
+
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="tickerly">
+    <meta property="og:locale" content="de_DE">
+    <meta property="og:url" content="{{ share_url }}">
+    <meta property="og:title" content="{{ share_title }}">
+    <meta property="og:description" content="{{ share_text }}">
+
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="{{ share_title }}">
+    <meta name="twitter:description" content="{{ share_text }}">
+
+    {% if not game.active %}
+        {# Only owner and admins can see this page at all — keep it out of indexes. #}
+        <meta name="robots" content="noindex">
+    {% endif %}
+{% endblock %}
 
 {% block body %}
     <div class="card mb-6 rounded-3xl p-8 text-center">
@@ -40,9 +64,18 @@
         <p class="text-sm text-ink-400">{{ game.datetime ? game.datetime|date('d.m.Y H:i') : '' }}</p>
     </div>
 
-    <button class="btn-ghost mb-6" onclick="window.location.reload();">
-        <span aria-hidden="true">↻</span> Aktualisieren
-    </button>
+    <div class="mb-6 flex flex-wrap items-center gap-3">
+        <button class="btn-ghost" onclick="window.location.reload();">
+            <span aria-hidden="true">↻</span> Aktualisieren
+        </button>
+
+        <button class="btn-ghost" id="share-button" data-share-url="{{ share_url }}" data-share-title="{{ share_title }}" data-share-text="{{ share_text }}">
+            <span aria-hidden="true">↗</span> <span id="share-label">Teilen</span>
+        </button>
+
+        {# Last resort when neither the share sheet nor the clipboard is available. #}
+        <input id="share-fallback" class="hidden w-full rounded-full border border-black/10 bg-white px-4 py-2 text-sm text-ink-700 sm:w-80" type="text" readonly value="{{ share_url }}" aria-label="Link zum Spiel">
+    </div>
 
     {% if is_owner %}
         <div class="card mb-6 rounded-3xl p-6">
@@ -65,4 +98,48 @@
             <a class="btn-ghost" href="{{ path('app_game_edit', {'slug': game.slug}) }}">Bearbeiten</a>
         {% endif %}
     </div>
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        (function () {
+            const button = document.querySelector("#share-button");
+            const label = document.querySelector("#share-label");
+            const fallback = document.querySelector("#share-fallback");
+            const data = {
+                title: button.dataset.shareTitle,
+                text: button.dataset.shareText,
+                url: button.dataset.shareUrl,
+            };
+
+            function confirmCopied() {
+                label.textContent = "Link kopiert";
+                setTimeout(() => { label.textContent = "Teilen"; }, 2000);
+            }
+
+            button.addEventListener("click", async () => {
+                // On phones this opens the native sheet, WhatsApp and the rest included.
+                if (navigator.share) {
+                    try {
+                        await navigator.share(data);
+                        return;
+                    } catch (error) {
+                        // The user dismissing the sheet is not a failure to fall back from.
+                        if (error.name === "AbortError") {
+                            return;
+                        }
+                    }
+                }
+
+                try {
+                    await navigator.clipboard.writeText(data.url);
+                    confirmCopied();
+                } catch (error) {
+                    // No clipboard permission: show the link so it can be copied by hand.
+                    fallback.classList.remove("hidden");
+                    fallback.select();
+                }
+            });
+        })();
+    </script>
 {% endblock %}

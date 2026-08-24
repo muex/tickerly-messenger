@@ -134,19 +134,18 @@ Prioritized findings and recommendations from a code analysis of the app
   a temporary `User::__unserialize()`; it was removed on 2026-08-24, once no
   such session could still be alive after the 2026-08-23 release.
 
-- [ ] **Social sharing for a game.** Make an individual game page shareable so
-  people can post a live ticker link:
-  - Add Open Graph + Twitter Card meta tags on the game show page (title =
-    `Home : Away`, description = score + location + kickoff, `og:type=website`,
-    canonical URL). Needs a `{% block head_meta %}` in `templates/base.html.twig`
-    (there's only a `title` block today) that `show.html.twig` fills in.
-  - A share affordance: a "Teilen" button using the Web Share API
-    (`navigator.share`) with a copy-link fallback; optionally WhatsApp/Telegram
-    intents since this is a live-score use case.
-  - Optional stretch: a dynamic OG preview image (scoreboard) per game so link
-    unfurls show the current score — can be a cached, projector-style asset.
-  - Depends on the URL scheme item for clean, stable share links; and note the
-    page is already publicly readable, so no auth work is needed to share.
+- [x] **Social sharing for a game.** `base.html.twig` gained a `head_meta`
+  block; the game page fills it with a canonical link, Open Graph and Twitter
+  Card tags (title = `Home 0 : 0 Away`, description = location + kickoff) and
+  `noindex` while a game is deactivated. Next to "Aktualisieren" sits a "Teilen"
+  button: the Web Share API where it exists (which is what surfaces WhatsApp and
+  friends on phones), otherwise the link goes to the clipboard, and if that is
+  refused a readonly input with the link is revealed. All four paths were
+  exercised headlessly against the rendered script.
+
+  - [ ] Still open (stretch): a dynamic OG preview image per game, so unfurls
+    show the scoreboard instead of a bare card. Fits the projector pattern —
+    render on `GameStateChanged`, cache as a static asset.
 
 ## Suggested order
 
