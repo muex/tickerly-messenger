@@ -4,6 +4,22 @@
 # Put parameters here that don't need to change on each machine where the app is deployed
 # https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
+    # Fonts for the link-preview card, first match wins. A bundled file would go
+    # first; after that the usual Linux and macOS locations, so the card works on
+    # the server and on a dev machine without anything vendored.
+    app.game_card.fonts:
+        regular:
+            - '%kernel.project_dir%/assets/fonts/card-regular.ttf'
+            - '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf'
+            - '/usr/share/fonts/dejavu/DejaVuSans.ttf'
+            - '/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf'
+            - '/System/Library/Fonts/Supplemental/Arial.ttf'
+        bold:
+            - '%kernel.project_dir%/assets/fonts/card-bold.ttf'
+            - '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf'
+            - '/usr/share/fonts/dejavu/DejaVuSans-Bold.ttf'
+            - '/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf'
+            - '/System/Library/Fonts/Supplemental/Arial Bold.ttf'
 
 services:
     # default configuration for services in *this* file

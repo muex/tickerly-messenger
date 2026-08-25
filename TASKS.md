@@ -143,9 +143,15 @@ Prioritized findings and recommendations from a code analysis of the app
   refused a readonly input with the link is revealed. All four paths were
   exercised headlessly against the rendered script.
 
-  - [ ] Still open (stretch): a dynamic OG preview image per game, so unfurls
-    show the scoreboard instead of a bare card. Fits the projector pattern —
-    render on `GameStateChanged`, cache as a static asset.
+  - [x] Dynamic OG preview image: `/games/{slug}/card.png` draws a 1200×630
+    scoreboard with GD (`GameCardRenderer`). Rendered on demand rather than on
+    `GameStateChanged` — an unfurler asks far less often than the ticker is
+    tapped, so nothing is drawn that nobody reads. Cached under a key built from
+    the score, which doubles as the `?v=` cache buster and the ETag, so a stale
+    card can never be served. Long club names stack onto two lines instead of
+    shrinking below the meta line. Where the server has no GD, no FreeType or no
+    font, `isAvailable()` is false and the page omits the image tags rather than
+    pointing a crawler at a broken URL.
 
 ## Suggested order
 
