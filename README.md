@@ -106,8 +106,20 @@ php bin/console app:user:promote you@example.com     # --demote takes it back
 php bin/phpunit
 ```
 
-The suite covers the scoring and activation handlers, ownership authorization,
-the deactivated-account check, and a few HTTP smoke tests. It needs no database.
+The suite covers the scoring, clamping and activation handlers, slug building,
+the deactivated-account check, the preview card, and — over real HTTP —
+ownership authorization, the sharing metadata and the scoring controls.
+
+It runs without a database: the tests that need real rows skip themselves unless
+one is reachable. To run those too:
+
+```bash
+docker compose up -d database
+APP_ENV=test php bin/console doctrine:migrations:migrate
+```
+
+Each of them works inside a transaction that is rolled back afterwards, so they
+leave nothing behind.
 
 ## Layout
 
