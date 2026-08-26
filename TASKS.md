@@ -112,11 +112,11 @@ Prioritized findings and recommendations from a code analysis of the app
   `INT DEFAULT 0 NOT NULL` in the schema; existing NULLs were filled by
   `Version20260826090000`.
 
-- [ ] **Scores can go negative.** `DecreaseHomePoints`/`DecreaseAwayPoints`
-  decrement without a floor, so H− on a fresh 0 : 0 game writes -1 and the
-  ticker shows it. Noticed while tightening the score columns. Fix: clamp in the
-  handlers (a score below zero has no meaning in any sport this app is for), and
-  ideally hide or disable the − buttons at 0.
+- [x] **Scores could go negative.** `DecreaseHomePoints`/`DecreaseAwayPoints`
+  decremented without a floor, so H− on a fresh 0 : 0 game wrote -1 and the
+  ticker showed it. Both handlers now clamp at 0, and the − buttons render
+  `disabled` while that side is at nil — the guard sits in the handler, so a
+  replayed or hand-made POST cannot get around it either.
 
 ## 🔵 Feature ideas
 
