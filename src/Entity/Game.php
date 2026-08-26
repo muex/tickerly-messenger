@@ -37,11 +37,11 @@ class Game
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
     private ?\DateTimeInterface $datetime = null;
 
-    #[ORM\Column(nullable: true)]
-    private ?int $homepoints =0;
+    #[ORM\Column(options: ['default' => 0])]
+    private int $homepoints = 0;
 
-    #[ORM\Column(nullable: true)]
-    private ?int $awaypoints = 0;
+    #[ORM\Column(options: ['default' => 0])]
+    private int $awaypoints = 0;
 
     /**
      * Deactivated games are hidden from the public lists and pages,
@@ -135,24 +135,24 @@ class Game
         return $this;
     }
 
-    public function getHomepoints(): ?int
+    public function getHomepoints(): int
     {
         return $this->homepoints;
     }
 
-    public function setHomepoints(?int $homepoints): self
+    public function setHomepoints(int $homepoints): self
     {
         $this->homepoints = $homepoints;
 
         return $this;
     }
 
-    public function getAwaypoints(): ?int
+    public function getAwaypoints(): int
     {
         return $this->awaypoints;
     }
 
-    public function setAwaypoints(?int $awaypoints): self
+    public function setAwaypoints(int $awaypoints): self
     {
         $this->awaypoints = $awaypoints;
 
