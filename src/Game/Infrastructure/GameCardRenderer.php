@@ -112,7 +112,7 @@ class GameCardRenderer
             $this->centered($image, (string) $game->getAway(), $bold, 38, 305, $ink500, $inner, 28);
         }
 
-        $this->centered($image, sprintf('%d : %d', $game->getHomepoints() ?? 0, $game->getAwaypoints() ?? 0), $bold, 150, 460, $ink900, $inner, 150);
+        $this->centered($image, sprintf('%d : %d', $game->getHomepoints(), $game->getAwaypoints()), $bold, 150, 460, $ink900, $inner, 150);
 
         $meta = array_filter([
             $game->getLocation(),

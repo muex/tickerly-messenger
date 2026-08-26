@@ -105,8 +105,18 @@ Prioritized findings and recommendations from a code analysis of the app
 - [x] ~~**Switch `User::$roles` from Doctrine `array` to `json`.**~~ Non-issue:
   an untyped `#[ORM\Column]` on an `array` property already maps to `json`
   (baseline shows `roles JSON NOT NULL`). No change needed.
-- [ ] Minor: `private ?int $homepoints =0;` spacing; consider `NOT NULL
-  default 0` for score columns instead of nullable.
+- [x] Minor: `private ?int $homepoints =0;` spacing; `NOT NULL default 0` for
+  the score columns instead of nullable. A game always has a score — 0 : 0
+  before anyone taps anything — so "no score yet" and "zero" were never two
+  different things. Both columns are now `int` on the entity and
+  `INT DEFAULT 0 NOT NULL` in the schema; existing NULLs were filled by
+  `Version20260826090000`.
+
+- [ ] **Scores can go negative.** `DecreaseHomePoints`/`DecreaseAwayPoints`
+  decrement without a floor, so H− on a fresh 0 : 0 game writes -1 and the
+  ticker shows it. Noticed while tightening the score columns. Fix: clamp in the
+  handlers (a score below zero has no meaning in any sport this app is for), and
+  ideally hide or disable the − buttons at 0.
 
 ## 🔵 Feature ideas
 
