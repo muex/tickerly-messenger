@@ -92,16 +92,28 @@ Prioritized findings and recommendations from a code analysis of the app
 - [x] **Add tests.** Installed `symfony/test-pack` (PHPUnit 13). Added:
   `GameVoterTest` (ownership authorization), `IncreaseHomePointsHandlerTest`
   (scoring + `GameStateChanged` dispatch), and `SecuritySmokeTest` (public
-  landing page, `/new` redirects to login, score routes reject GET). 9 tests,
-  16 assertions, green. Next: DB-backed functional tests for the non-owner
-  403 path (needs test fixtures — pairs with the migration work).
+  landing page, `/new` redirects to login, score routes reject GET). Since
+  extended with the slug builder, the decrement clamp, the preview card and the
+  session round trip. The DB-backed part is done too: `FunctionalTestCase`
+  builds rows in a transaction that is rolled back afterwards and skips itself
+  when no database is reachable, so `php bin/phpunit` stays green without a
+  container. On it hang `GameAccessTest` (non-owner 403 on edit and events,
+  missing CSRF token, admin area closed to ordinary users), `GameSharingTest`
+  (OG/canonical tags, the card and its cache-busting URL, deactivated games
+  gone for the public but reachable and `noindex` for the owner) and
+  `ScoreControlsTest` (minus buttons disabled at nil, none at all for
+  visitors). 39 tests, 93 assertions.
 - [x] **Add migrations.** Added a baseline migration (`Version20260706192221`)
   with the full schema, generated against MariaDB. Aligned dev/test with prod's
   engine: `compose.yaml` now runs **MariaDB 10.11** (self-provisioning `app`
   user + `tickerly` / `tickerly_test` DBs via `docker/db/init`), replacing the
   stale Postgres flex compose files. `.env` default is now MariaDB. Dev + test
   DBs migrate cleanly and validate in sync; the suite is green against MariaDB.
-  Note: prod `serverVersion` in `.env` may need adjusting to the exact 10.11.x.
+  Note resolved: the exact patch level in `serverVersion` does not matter.
+  DBAL picks the platform in bands (`AbstractMySQLDriver`: 10.4.3, 10.5.2,
+  10.6.0, 10.10.0, 11.7, 12.3), so every 10.11.x lands on `MariaDb1010Platform`.
+  Only a prod server outside that band would need the value changed — worth one
+  look with `SELECT VERSION()` if the host is ever upgraded.
 - [x] ~~**Switch `User::$roles` from Doctrine `array` to `json`.**~~ Non-issue:
   an untyped `#[ORM\Column]` on an `array` property already maps to `json`
   (baseline shows `roles JSON NOT NULL`). No change needed.
