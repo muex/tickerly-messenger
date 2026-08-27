@@ -132,6 +132,23 @@ Prioritized findings and recommendations from a code analysis of the app
 
 ## 🔵 Feature ideas
 
+- [x] **SEO for the landing page.** Audit found: no meta description anywhere,
+  no canonical, no Open Graph on `/`, `robots.txt` and `sitemap.xml` both 404,
+  `www.tickerly.de` answering 200 next to the apex (every URL under two names),
+  and — the structural one — no crawlable path into any game, because `/games`
+  builds its list in JavaScript from the JSON read models. Fixed: canonical in
+  the layout for every route, a default description, full OG/Twitter set plus
+  `WebSite` JSON-LD on `/`, a preview card for the site itself (`/card.png`),
+  `robots.txt`, a generated `/sitemap.xml` (landing pages plus every public
+  game), a 301 from www to the apex in `.htaccess`, and a server-rendered
+  "Aktuelle Ticker" section that links into the game pages. The h1 now names
+  the subject instead of only setting a mood.
+
+  - [ ] Still open: `/games` itself is JavaScript-only. Rendering both lists in
+    Twig and keeping the JSON for live updates would make the index crawlable
+    and work without JS.
+
+
 - [x] **Admin area.** `/admin` (ROLE_ADMIN, guarded by `access_control`) with an
   overview plus user and game lists that activate/deactivate entries. Both
   entities carry an `active` flag: deactivated users are refused at login by

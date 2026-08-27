@@ -4,16 +4,13 @@ namespace App\Tests\Controller;
 
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
+/**
+ * The checks that need no data at all. That the landing page is public is
+ * covered by LandingPageTest instead: it lists games now and therefore needs
+ * a database.
+ */
 class SecuritySmokeTest extends WebTestCase
 {
-    public function testLandingPageIsPublic(): void
-    {
-        $client = static::createClient();
-        $client->request('GET', '/');
-
-        $this->assertResponseIsSuccessful();
-    }
-
     public function testCreateGameRequiresLogin(): void
     {
         $client = static::createClient();
