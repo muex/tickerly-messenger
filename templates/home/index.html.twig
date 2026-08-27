@@ -1,18 +1,55 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Tickerly – Live-Ticker für deine Spiele{% endblock %}
+{% block title %}Tickerly – Live-Ticker für Amateursport{% endblock %}
+
+{% block head_meta %}
+    {% set page_url = url('app_home') %}
+    {% set page_description = 'Live-Ticker für Amateursport: Spielstand und Ereignisse in Sekunden beim Publikum. Ticker in einer Minute anlegen, per Link teilen — ohne App, ohne Anmeldung fürs Zuschauen.' %}
+
+    <meta name="description" content="{{ page_description }}">
+
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="tickerly">
+    <meta property="og:locale" content="de_DE">
+    <meta property="og:url" content="{{ page_url }}">
+    <meta property="og:title" content="Tickerly – Live-Ticker für Amateursport">
+    <meta property="og:description" content="{{ page_description }}">
+    {% if site_card %}
+        <meta property="og:image" content="{{ url('app_site_card') }}">
+        <meta property="og:image:type" content="image/png">
+        <meta property="og:image:width" content="1200">
+        <meta property="og:image:height" content="630">
+        <meta property="og:image:alt" content="tickerly – Live-Ticker für jedes Spiel">
+        <meta name="twitter:image" content="{{ url('app_site_card') }}">
+    {% endif %}
+
+    <meta name="twitter:card" content="{{ site_card ? 'summary_large_image' : 'summary' }}">
+    <meta name="twitter:title" content="Tickerly – Live-Ticker für Amateursport">
+    <meta name="twitter:description" content="{{ page_description }}">
+
+    <script type="application/ld+json">
+        {{ {
+            '@context': 'https://schema.org',
+            '@type': 'WebSite',
+            'name': 'tickerly',
+            'url': page_url,
+            'description': page_description,
+            'inLanguage': 'de-DE'
+        }|json_encode(constant('JSON_UNESCAPED_SLASHES') b-or constant('JSON_UNESCAPED_UNICODE'))|raw }}
+    </script>
+{% endblock %}
 
 {% block body %}
     {# ---------------------------------------------------------------- Hero #}
     <section class="pt-8 pb-4 text-center sm:pt-14">
         <span class="inline-flex items-center gap-2 rounded-full bg-black/5 px-3.5 py-1.5 text-xs font-medium text-ink-600 ring-1 ring-black/5">
             <span class="h-1.5 w-1.5 animate-pulse rounded-full bg-brand-500"></span>
-            Live-Ticker für jeden Sport
+            Für jeden Sport, von Kreisliga bis Turnier
         </span>
 
-        <h1 class="mx-auto mt-6 max-w-2xl text-5xl font-semibold leading-[1.05] tracking-tight text-ink-900 sm:text-6xl">
-            Jedes Spiel.
-            <span class="bg-gradient-to-r from-brand-500 to-brand-400 bg-clip-text text-transparent">In Echtzeit.</span>
+        <h1 class="mx-auto mt-6 max-w-3xl text-5xl font-semibold leading-[1.05] tracking-tight text-ink-900 sm:text-6xl">
+            Live-Ticker für jedes Spiel.
+            <span class="whitespace-nowrap bg-gradient-to-r from-brand-500 to-brand-400 bg-clip-text text-transparent">In Echtzeit.</span>
         </h1>
 
         <p class="mx-auto mt-5 max-w-xl text-lg leading-relaxed text-ink-500">
@@ -31,7 +68,41 @@
         </div>
     </section>
 
-    {# ------------------------------------------------------ Ticker preview #}
+    {# ---------------------------------------------- Real tickers, if any #}
+    {% if upcoming_games or recent_games %}
+        <section class="mt-16">
+            <h2 class="text-center text-2xl font-semibold tracking-tight text-ink-900">Aktuelle Ticker</h2>
+            <p class="mx-auto mt-2 mb-8 max-w-lg text-center text-ink-500">
+                Direkt mitverfolgen — ohne Anmeldung.
+            </p>
+
+            {% for group in [
+                { title: 'Als Nächstes', games: upcoming_games },
+                { title: 'Zuletzt gespielt', games: recent_games }
+            ] %}
+                {% if group.games %}
+                    <h3 class="mb-3 mt-6 text-center text-sm font-semibold uppercase tracking-wide text-ink-400">{{ group.title }}</h3>
+                    <ul class="flex flex-wrap justify-center gap-3">
+                        {% for game in group.games %}
+                            <li class="w-full sm:w-[calc(50%-0.375rem)]">
+                                <a class="card block h-full rounded-3xl p-5 text-center transition duration-200 hover:-translate-y-0.5 hover:shadow-lg"
+                                   href="{{ path('app_game_show', {'slug': game.slug}) }}">
+                                    <p class="text-sm font-medium text-ink-500">{{ game.home }} : {{ game.away }}</p>
+                                    <p class="my-1 text-3xl font-semibold tracking-tight text-ink-900 tabular-nums">{{ game.homepoints }} : {{ game.awaypoints }}</p>
+                                    <p class="text-xs text-ink-400">{{ game.location }} · {{ game.datetime|date('d.m.Y H:i') }}</p>
+                                </a>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            {% endfor %}
+
+            <p class="mt-8 text-center">
+                <a class="text-sm font-medium text-brand-500" href="{{ path('app_game_index') }}">Alle Spiele ansehen →</a>
+            </p>
+        </section>
+    {% else %}
+    {# --------------------------------- Ticker preview, while nothing is live #}
     <section class="mt-12">
         <div class="card mx-auto max-w-md rounded-3xl p-6">
             <div class="flex items-center justify-between text-xs font-medium text-ink-400">
@@ -59,6 +130,7 @@
             </div>
         </div>
     </section>
+    {% endif %}
 
     {# ----------------------------------------------------------- Features #}
     <section class="mt-20">

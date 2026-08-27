@@ -1,0 +1,8 @@
+# Everything public is fair game; the rest is either private or thin.
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /login
+Disallow: /register
+
+Sitemap: https://tickerly.de/sitemap.xml
