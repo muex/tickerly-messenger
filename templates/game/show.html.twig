@@ -76,9 +76,20 @@
     </div>
 
     <div class="mb-6 flex flex-wrap items-center gap-3">
-        <button class="btn-ghost" onclick="window.location.reload();">
+        {# A plain link to this same page: reloads the score without JavaScript. #}
+        <a class="btn-ghost" href="{{ path('app_game_show', {'slug': game.slug}) }}">
             <span aria-hidden="true">↻</span> Aktualisieren
-        </button>
+        </a>
+
+        {# Spectators get the score by themselves once a minute. The owner does
+           not: a reload mid-sentence would eat whatever is typed into the event
+           form below. Hidden until the script takes over, so nobody is left
+           with a switch that does nothing. #}
+        {% if not is_owner %}
+            <button class="btn-ghost" type="button" id="autorefresh-toggle" aria-pressed="true" hidden>
+                <span aria-hidden="true">⏱</span> <span id="autorefresh-label">Automatisch aktualisieren</span>
+            </button>
+        {% endif %}
 
         <button class="btn-ghost" id="share-button" data-share-url="{{ share_url }}" data-share-title="{{ share_title }}" data-share-text="{{ share_text }}">
             <span aria-hidden="true">↗</span> <span id="share-label">Teilen</span>
@@ -151,6 +162,81 @@
                     fallback.select();
                 }
             });
+        })();
+
+        (function () {
+            const toggle = document.querySelector("#autorefresh-toggle");
+
+            // Absent for the owner, who is the one writing the ticker.
+            if (!toggle) {
+                return;
+            }
+
+            const label = document.querySelector("#autorefresh-label");
+            const STORAGE_KEY = "tickerly:autorefresh";
+            const INTERVAL = 60000;
+            let timer = null;
+
+            // WCAG 2.2.2 asks for a way to stop this, and the choice has to
+            // survive the very reloads it controls — hence the stored flag.
+            function isOn() {
+                try {
+                    return window.localStorage.getItem(STORAGE_KEY) !== "off";
+                } catch (error) {
+                    // Storage blocked: refreshing is still the sensible default.
+                    return true;
+                }
+            }
+
+            function remember(value) {
+                try {
+                    window.localStorage.setItem(STORAGE_KEY, value);
+                } catch (error) {
+                    // Not storable, but the switch still holds for this page view.
+                }
+            }
+
+            function busy() {
+                const active = document.activeElement;
+
+                // Reloading out from under a hidden tab wastes the request, and
+                // out from under the share link being copied is just rude.
+                return document.visibilityState === "hidden"
+                    || (active && active.tagName === "INPUT");
+            }
+
+            function schedule() {
+                window.clearTimeout(timer);
+                timer = window.setTimeout(() => {
+                    if (busy()) {
+                        schedule();
+                        return;
+                    }
+
+                    window.location.reload();
+                }, INTERVAL);
+            }
+
+            function render() {
+                const on = isOn();
+
+                toggle.setAttribute("aria-pressed", on ? "true" : "false");
+                label.textContent = on ? "Automatisch aktualisieren" : "Automatisch aktualisieren (aus)";
+
+                if (on) {
+                    schedule();
+                } else {
+                    window.clearTimeout(timer);
+                }
+            }
+
+            toggle.addEventListener("click", () => {
+                remember(isOn() ? "off" : "on");
+                render();
+            });
+
+            toggle.hidden = false;
+            render();
         })();
     </script>
 {% endblock %}
