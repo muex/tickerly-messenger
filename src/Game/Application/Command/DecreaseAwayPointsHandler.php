@@ -20,6 +20,6 @@ class DecreaseAwayPointsHandler
         $game->setAwaypoints(max(0, $game->getAwaypoints() - 1));
         $this->gameRepository->save($game, true);
 
-        $this->eventBus->dispatch(new GameStateChanged());
+        $this->eventBus->dispatch(new GameStateChanged($game->getSlug()));
     }
 }

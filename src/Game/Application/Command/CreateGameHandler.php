@@ -30,6 +30,6 @@ class CreateGameHandler
 
         $this->gameRepository->save($newGame, true);
 
-        $this->eventBus->dispatch(new GameStateChanged());
+        $this->eventBus->dispatch(new GameStateChanged($newGame->getSlug()));
     }
 }

@@ -15,8 +15,13 @@ class DeleteGameHandler
     public function __invoke(DeleteGame $deleteGame)
     {
         $game = $this->gameRepository->find($deleteGame->getGameId());
+
+        // Read before the row goes: the projector needs it to find the snapshot
+        // file that has to disappear along with the game.
+        $slug = $game->getSlug();
+
         $this->gameRepository->remove($game, true);
 
-        $this->eventBus->dispatch(new GameStateChanged());
+        $this->eventBus->dispatch(new GameStateChanged($slug));
     }
 }

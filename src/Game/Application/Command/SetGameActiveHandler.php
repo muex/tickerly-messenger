@@ -19,6 +19,6 @@ class SetGameActiveHandler
         $this->gameRepository->save($game, true);
 
         // Rebuilds the read models so a deactivated game leaves the public lists.
-        $this->eventBus->dispatch(new GameStateChanged());
+        $this->eventBus->dispatch(new GameStateChanged($game->getSlug()));
     }
 }

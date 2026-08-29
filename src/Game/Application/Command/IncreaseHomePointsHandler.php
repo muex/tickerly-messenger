@@ -19,6 +19,6 @@ class IncreaseHomePointsHandler
         $game->setHomepoints(++$points);
         $this->gameRepository->save($game, true);
 
-        $this->eventBus->dispatch(new GameStateChanged());
+        $this->eventBus->dispatch(new GameStateChanged($game->getSlug()));
     }
 }

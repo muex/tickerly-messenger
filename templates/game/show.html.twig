@@ -39,7 +39,7 @@
 
 {% block body %}
     <div class="card mb-6 rounded-3xl p-8 text-center">
-        <h1 class="text-lg font-medium text-ink-500">{{ game.home }} : {{ game.away }}</h1>
+        <h1 class="text-lg font-medium text-ink-500" id="matchup">{{ game.home }} : {{ game.away }}</h1>
 
         <div class="mt-5 flex items-center justify-center gap-5">
             {% if is_owner %}
@@ -55,7 +55,7 @@
                     </form>
                 </div>
             {% endif %}
-            <span class="text-6xl font-semibold tracking-tight text-ink-900 tabular-nums">{{ game.homepoints }} : {{ game.awaypoints }}</span>
+            <span class="text-6xl font-semibold tracking-tight text-ink-900 tabular-nums" id="score">{{ game.homepoints }} : {{ game.awaypoints }}</span>
             {% if is_owner %}
                 <div class="flex flex-col gap-2">
                     <form method="post" action="{{ path('app_game_increase_away', {'slug': game.slug}) }}">
@@ -81,14 +81,17 @@
             <span aria-hidden="true">↻</span> Aktualisieren
         </a>
 
-        {# Spectators get the score by themselves once a minute. The owner does
-           not: a reload mid-sentence would eat whatever is typed into the event
-           form below. Hidden until the script takes over, so nobody is left
-           with a switch that does nothing. #}
+        {# Spectators get the score by themselves once a minute, polled from the
+           snapshot the projector writes. Not the owner: nothing may rewrite the
+           page under someone typing into the event form below. Hidden until the
+           script takes over, so nobody is left with a switch that does nothing. #}
         {% if not is_owner %}
-            <button class="btn-ghost" type="button" id="autorefresh-toggle" aria-pressed="true" hidden>
+            <button class="btn-ghost" type="button" id="autorefresh-toggle" aria-pressed="true" data-snapshot="/games/{{ game.slug }}.json" hidden>
                 <span aria-hidden="true">⏱</span> <span id="autorefresh-label">Automatisch aktualisieren</span>
             </button>
+
+            {# What a screen reader hears when the score moves. #}
+            <p class="sr-only" id="live-status" role="status" aria-live="polite"></p>
         {% endif %}
 
         <button class="btn-ghost" id="share-button" data-share-url="{{ share_url }}" data-share-title="{{ share_title }}" data-share-text="{{ share_text }}">
@@ -105,7 +108,10 @@
         </div>
     {% endif %}
 
-    <div class="space-y-2">
+    {# Rebuilt from the snapshot as the ticker grows, so it carries no live
+       region of its own — re-announcing the whole list every time would drown
+       out the one line that is actually new. #}
+    <div class="space-y-2" id="events">
         {% for event in game.gameevents %}
             <div class="card flex items-baseline gap-3 rounded-2xl px-5 py-3.5">
                 <span class="shrink-0 rounded-full bg-brand-50 px-2.5 py-0.5 text-sm font-semibold text-brand-600 tabular-nums">{{ event.timecode }}</span>
@@ -173,12 +179,19 @@
             }
 
             const label = document.querySelector("#autorefresh-label");
+            const status = document.querySelector("#live-status");
+            const matchup = document.querySelector("#matchup");
+            const score = document.querySelector("#score");
+            const events = document.querySelector("#events");
+            const snapshot = toggle.dataset.snapshot;
             const STORAGE_KEY = "tickerly:autorefresh";
             const INTERVAL = 60000;
             let timer = null;
+            let seen = null;
+            let current = null;
 
             // WCAG 2.2.2 asks for a way to stop this, and the choice has to
-            // survive the very reloads it controls — hence the stored flag.
+            // survive a reload — hence the stored flag.
             function isOn() {
                 try {
                     return window.localStorage.getItem(STORAGE_KEY) !== "off";
@@ -199,25 +212,108 @@
             function busy() {
                 const active = document.activeElement;
 
-                // Reloading out from under a hidden tab wastes the request, and
-                // out from under the share link being copied is just rude.
+                // A hidden tab does not need the traffic, and pulling the page
+                // out from under someone copying the share link is just rude.
                 return document.visibilityState === "hidden"
                     || (active && active.tagName === "INPUT");
             }
 
+            function renderEvents(list) {
+                events.replaceChildren(...list.map((event) => {
+                    const row = document.createElement("div");
+                    row.className = "card flex items-baseline gap-3 rounded-2xl px-5 py-3.5";
+
+                    const timecode = document.createElement("span");
+                    timecode.className = "shrink-0 rounded-full bg-brand-50 px-2.5 py-0.5 text-sm font-semibold text-brand-600 tabular-nums";
+                    timecode.textContent = event.timecode ?? "";
+
+                    const message = document.createElement("span");
+                    message.className = "text-ink-700";
+                    message.textContent = event.message ?? "";
+
+                    row.append(timecode, message);
+
+                    return row;
+                }));
+            }
+
+            function render(game) {
+                matchup.textContent = game.home + " : " + game.away;
+                score.textContent = game.homepoints + " : " + game.awaypoints;
+                renderEvents(game.events);
+            }
+
+            // Sighted visitors see what moved. This is the same news for
+            // everyone else, in one short sentence instead of a whole list.
+            function announcement(game, previous) {
+                if (!previous) {
+                    // The page was already showing this: news to nobody.
+                    return "";
+                }
+
+                if (game.homepoints !== previous.homepoints || game.awaypoints !== previous.awaypoints) {
+                    return "Neuer Spielstand: " + game.home + " " + game.homepoints
+                        + ", " + game.away + " " + game.awaypoints + ".";
+                }
+
+                if (game.events.length > previous.events.length) {
+                    // Newest first, same order the list is rendered in.
+                    const latest = game.events[0];
+
+                    return "Neues Ereignis: " + [latest.timecode, latest.message].filter(Boolean).join(" ");
+                }
+
+                return "";
+            }
+
+            async function poll() {
+                // A static file written by the projector: no PHP runs for a
+                // spectator sitting on the page, and an unchanged snapshot is
+                // answered with a 304.
+                const response = await fetch(snapshot, { cache: "no-cache" });
+
+                if (!response.ok) {
+                    throw new Error("Snapshot unavailable: " + response.status);
+                }
+
+                const body = await response.text();
+
+                // Nothing happened in the last minute: leave the DOM, and the
+                // live region, completely alone.
+                if (body === seen) {
+                    return;
+                }
+
+                seen = body;
+
+                const game = JSON.parse(body);
+
+                render(game);
+                status.textContent = announcement(game, current);
+                current = game;
+            }
+
             function schedule() {
                 window.clearTimeout(timer);
-                timer = window.setTimeout(() => {
+                timer = window.setTimeout(async () => {
                     if (busy()) {
                         schedule();
                         return;
                     }
 
-                    window.location.reload();
+                    try {
+                        await poll();
+                        schedule();
+                    } catch (error) {
+                        // No snapshot for this game yet, or it stopped being
+                        // public: fall back to the plain reload, which renders
+                        // from the database and shows whatever the truth is.
+                        window.location.reload();
+                    }
                 }, INTERVAL);
             }
 
-            function render() {
+            function apply() {
                 const on = isOn();
 
                 toggle.setAttribute("aria-pressed", on ? "true" : "false");
@@ -232,11 +328,11 @@
 
             toggle.addEventListener("click", () => {
                 remember(isOn() ? "off" : "on");
-                render();
+                apply();
             });
 
             toggle.hidden = false;
-            render();
+            apply();
         })();
     </script>
 {% endblock %}

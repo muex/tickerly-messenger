@@ -33,8 +33,8 @@ flowchart LR
     H -->|persist| DB[(MariaDB)]
     H -->|GameStateChanged| EB[event.bus]
     EB --> P[GameProjector]
-    P -->|writes| J["public/*.json"]
-    B[Browser] -->|fetch| J
+    P -->|writes| J["public/*.json<br>public/games/&lt;slug&gt;.json"]
+    B[Browser] -->|fetch / poll| J
 ```
 
 - **Write side.** Controllers never touch entities directly; they dispatch a
@@ -42,13 +42,21 @@ flowchart LR
   `command.bus`. The bus runs validation and wraps each handler in a Doctrine
   transaction.
 - **One domain event.** Every mutating handler ends by dispatching the same
-  `GameStateChanged` event on `event.bus` — the signal that the read models are
-  stale. Handlers do not know what happens next.
+  `GameStateChanged` event on `event.bus`, carrying the slug of the game it
+  touched — the signal that the read models are stale. Handlers do not know what
+  happens next.
 - **Read side.** `GameStateChangedHandler` runs `GameProjector`, which rebuilds
-  `public/nextgames.json` and `public/lastgames.json`. The files are written to
-  a temp name and renamed, so a browser fetching them never sees a half-written
-  file. The index page is therefore plain HTML plus two static JSON fetches, and
-  the database is never queried to render it.
+  `public/nextgames.json`, `public/lastgames.json` and the changed game's own
+  snapshot in `public/games/<slug>.json`. The files are written to a temp name
+  and renamed, so a browser fetching them never sees a half-written file. The
+  index page is therefore plain HTML plus two static JSON fetches, and the
+  database is never queried to render it.
+- **Live ticker.** The game page polls its snapshot once a minute for spectators,
+  so an audience of any size costs the web server static files instead of a PHP
+  request each. A snapshot lives in the web root, where it is served before any
+  voter runs, so a game that stops being public loses its file. `bin/console
+  app:project-read-models` rebuilds every file and drops orphans; the deploy runs
+  it after rsync.
 
 The trade-off is deliberate and worth knowing before deploying: file-based read
 models are fast and dependency-free, but they assume a single instance with a

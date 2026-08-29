@@ -38,3 +38,16 @@ services:
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
+
+# The projector writes into the web root. Under test that would mean the real
+# public/ directory, where a test run would overwrite the read models a dev is
+# looking at — so it writes into the cache directory instead.
+when@test:
+    services:
+        _defaults:
+            autowire: true
+            autoconfigure: true
+
+        App\Game\Infrastructure\GameProjector:
+            arguments:
+                $webRoot: '%kernel.cache_dir%/public'
