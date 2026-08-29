@@ -94,18 +94,22 @@ jobs:
             "${{ vars.SSH_USER }}@${{ vars.SSH_HOST }}" \
             "cd ${{ vars.DEPLOY_PATH }} && APP_ENV=prod php bin/console doctrine:migrations:migrate --no-interaction --allow-no-migration"
 
-      # The generated JSON is excluded from rsync, so it survives a deploy — but
-      # a game created before the snapshots existed has none yet, and a stale one
-      # would never be noticed. Rebuilding all of them costs a second.
-      - name: Rebuild read models on server
-        run: |
-          ssh -i ~/.ssh/deploy_key -p "${{ vars.SSH_PORT }}" \
-            "${{ vars.SSH_USER }}@${{ vars.SSH_HOST }}" \
-            "cd ${{ vars.DEPLOY_PATH }} && APP_ENV=prod php bin/console app:project-read-models"
-
       # Warm the prod cache on the server so paths resolve to the real deploy path.
       - name: Clear & warm prod cache on server
         run: |
           ssh -i ~/.ssh/deploy_key -p "${{ vars.SSH_PORT }}" \
             "${{ vars.SSH_USER }}@${{ vars.SSH_HOST }}" \
             "cd ${{ vars.DEPLOY_PATH }} && APP_ENV=prod php bin/console cache:clear --no-debug && APP_ENV=prod php bin/console cache:warmup"
+
+      # After the cache, not before: var/ is excluded from rsync, so until the
+      # container is rebuilt the server still knows only the commands of the
+      # previous deploy — a new one is "not defined".
+      #
+      # The generated JSON is excluded from rsync too, so it survives a deploy —
+      # but a game created before the snapshots existed has none yet, and a stale
+      # one would never be noticed. Rebuilding all of them costs a second.
+      - name: Rebuild read models on server
+        run: |
+          ssh -i ~/.ssh/deploy_key -p "${{ vars.SSH_PORT }}" \
+            "${{ vars.SSH_USER }}@${{ vars.SSH_HOST }}" \
+            "cd ${{ vars.DEPLOY_PATH }} && APP_ENV=prod php bin/console app:project-read-models"
