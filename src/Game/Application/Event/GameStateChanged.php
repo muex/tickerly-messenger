@@ -11,4 +11,15 @@ use App\Shared\Domain\Event;
  */
 class GameStateChanged implements Event
 {
+    /**
+     * @param string|null $slug The game whose own snapshot went stale with it.
+     *                          Null where no single game is meant and only the
+     *                          shared lists need rebuilding.
+     */
+    public function __construct(private ?string $slug = null) {}
+
+    public function getSlug(): ?string
+    {
+        return $this->slug;
+    }
 }

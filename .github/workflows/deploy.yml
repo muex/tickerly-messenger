@@ -83,6 +83,7 @@ jobs:
             --exclude='.env.*.local' \
             --exclude='public/nextgames.json' \
             --exclude='public/lastgames.json' \
+            --exclude='public/games/' \
             ./ "${{ vars.SSH_USER }}@${{ vars.SSH_HOST }}:${{ vars.DEPLOY_PATH }}/"
 
       # Bring the prod schema up to date before the new code serves traffic.
@@ -92,6 +93,15 @@ jobs:
           ssh -i ~/.ssh/deploy_key -p "${{ vars.SSH_PORT }}" \
             "${{ vars.SSH_USER }}@${{ vars.SSH_HOST }}" \
             "cd ${{ vars.DEPLOY_PATH }} && APP_ENV=prod php bin/console doctrine:migrations:migrate --no-interaction --allow-no-migration"
+
+      # The generated JSON is excluded from rsync, so it survives a deploy — but
+      # a game created before the snapshots existed has none yet, and a stale one
+      # would never be noticed. Rebuilding all of them costs a second.
+      - name: Rebuild read models on server
+        run: |
+          ssh -i ~/.ssh/deploy_key -p "${{ vars.SSH_PORT }}" \
+            "${{ vars.SSH_USER }}@${{ vars.SSH_HOST }}" \
+            "cd ${{ vars.DEPLOY_PATH }} && APP_ENV=prod php bin/console app:project-read-models"
 
       # Warm the prod cache on the server so paths resolve to the real deploy path.
       - name: Clear & warm prod cache on server

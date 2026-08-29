@@ -12,6 +12,6 @@ class GameStateChangedHandler
 
     public function __invoke(GameStateChanged $event): void
     {
-        $this->gameProjector->projectReadModels();
+        $this->gameProjector->projectReadModels($event->getSlug());
     }
 }

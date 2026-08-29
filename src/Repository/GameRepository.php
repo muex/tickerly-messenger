@@ -75,6 +75,21 @@ class GameRepository extends ServiceEntityRepository
     }
 
     /**
+     * Every public game. The projector needs them all, not just the ten a list
+     * shows, because each one has a snapshot of its own to keep current.
+     *
+     * @return Game[]
+     */
+    public function findActive(): array
+    {
+        return $this->createQueryBuilder('g')
+            ->andWhere('g.active = true')
+            ->getQuery()
+            ->getResult()
+        ;
+    }
+
+    /**
      * All games, newest first, with their owner joined for the admin list.
      *
      * @return Game[]

@@ -3,6 +3,7 @@
 # Generated read-model projections (rebuilt by GameProjector)
 /public/nextgames.json
 /public/lastgames.json
+/public/games/
 
 ###> symfony/framework-bundle ###
 /.env.local
