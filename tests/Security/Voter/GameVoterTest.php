@@ -53,6 +53,41 @@ class GameVoterTest extends TestCase
         );
     }
 
+    public function testOwnerIsGrantedScoreWhileTheGameIsOn(): void
+    {
+        $owner = new User();
+        $game = (new Game())->setOwner($owner);
+
+        $this->assertSame(
+            VoterInterface::ACCESS_GRANTED,
+            $this->voter->vote($this->tokenFor($owner), $game, [GameVoter::SCORE])
+        );
+    }
+
+    public function testTheFinalWhistleTakesScoringAwayFromTheOwner(): void
+    {
+        $owner = new User();
+        $game = (new Game())->setOwner($owner)->setFinishedAt(new \DateTimeImmutable());
+
+        $this->assertSame(
+            VoterInterface::ACCESS_DENIED,
+            $this->voter->vote($this->tokenFor($owner), $game, [GameVoter::SCORE])
+        );
+    }
+
+    public function testAFinishedGameStaysEditable(): void
+    {
+        $owner = new User();
+        $game = (new Game())->setOwner($owner)->setFinishedAt(new \DateTimeImmutable());
+
+        // Otherwise a misspelled team name would be frozen with the score, and
+        // reopening the game would be impossible.
+        $this->assertSame(
+            VoterInterface::ACCESS_GRANTED,
+            $this->voter->vote($this->tokenFor($owner), $game, [GameVoter::EDIT])
+        );
+    }
+
     public function testAbstainsOnUnsupportedAttribute(): void
     {
         $owner = new User();

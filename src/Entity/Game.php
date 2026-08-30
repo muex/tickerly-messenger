@@ -51,6 +51,15 @@ class Game
     private bool $active = true;
 
     /**
+     * When the owner blew the whistle. A finished game keeps its page and its
+     * place in the lists but takes no more points and no more entries — until
+     * it is reopened, because an accidental whistle in the 70th minute must not
+     * be the end of the ticker.
+     */
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
+    private ?\DateTimeImmutable $finishedAt = null;
+
+    /**
      * Events belong to their game and have no life of their own: removing the
      * game removes them too, instead of failing on the foreign key.
      */
@@ -169,6 +178,23 @@ class Game
         $this->active = $active;
 
         return $this;
+    }
+
+    public function getFinishedAt(): ?\DateTimeImmutable
+    {
+        return $this->finishedAt;
+    }
+
+    public function setFinishedAt(?\DateTimeImmutable $finishedAt): self
+    {
+        $this->finishedAt = $finishedAt;
+
+        return $this;
+    }
+
+    public function isFinished(): bool
+    {
+        return $this->finishedAt !== null;
     }
 
     /**
