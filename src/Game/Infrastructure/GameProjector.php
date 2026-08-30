@@ -101,6 +101,9 @@ class GameProjector
             'away' => $game->getAway(),
             'homepoints' => $game->getHomepoints(),
             'awaypoints' => $game->getAwaypoints(),
+            // Tells a spectator's page that this score is final, so it can stop
+            // polling for a change that will never come.
+            'finished' => $game->isFinished(),
             'events' => $this->toEventReadModel($game),
         ]);
     }

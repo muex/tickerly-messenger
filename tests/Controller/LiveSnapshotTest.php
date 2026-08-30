@@ -64,6 +64,21 @@ class LiveSnapshotTest extends FunctionalTestCase
         $this->assertSame([['timecode' => '67', 'message' => 'Gelbe Karte']], $written['events']);
     }
 
+    public function testTheFinalWhistleReachesTheSnapshot(): void
+    {
+        $owner = $this->createUser('owner@example.com');
+        $game = $this->createGame($owner, 'whistle-vs-snapshot-2026-12-01');
+        $this->written[] = $snapshot = $this->pathFor($game->getSlug());
+
+        $this->client->loginUser($owner);
+        $crawler = $this->client->request('GET', '/games/' . $game->getSlug());
+        $this->client->submit($crawler->selectButton('Spiel beenden')->form());
+
+        // This is what tells a spectator's open page to show the final score and
+        // stop asking for a change that will never come.
+        $this->assertTrue(json_decode(file_get_contents($snapshot), true)['finished']);
+    }
+
     public function testOnlySpectatorsGetTheSwitchThatPolls(): void
     {
         $owner = $this->createUser('owner@example.com');

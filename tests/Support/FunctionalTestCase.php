@@ -62,9 +62,17 @@ abstract class FunctionalTestCase extends WebTestCase
         return $user;
     }
 
-    protected function createGame(User $owner, string $slug, bool $active = true, int $homepoints = 0, int $awaypoints = 0): Game
+    protected function createGame(
+        User $owner,
+        string $slug,
+        bool $active = true,
+        int $homepoints = 0,
+        int $awaypoints = 0,
+        ?\DateTimeImmutable $finishedAt = null,
+    ): Game
     {
         $game = (new Game())
+            ->setFinishedAt($finishedAt)
             ->setHome('Falcons')
             ->setAway('Sharks')
             ->setLocation('Stadthalle')

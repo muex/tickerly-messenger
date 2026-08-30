@@ -3,6 +3,7 @@
 {% block title %}{{ game.home }} : {{ game.away }}{% endblock %}
 
 {% set is_owner = app.user and app.user.email == game.owner.email %}
+{% set is_finished = game.finished %}
 {% set share_url = url('app_game_show', {'slug': game.slug}) %}
 {% set share_title = game.home ~ ' ' ~ game.homepoints ~ ' : ' ~ game.awaypoints ~ ' ' ~ game.away %}
 {% set share_text = game.location ~ ' · ' ~ (game.datetime ? game.datetime|date('d.m.Y H:i') : '') %}
@@ -42,7 +43,9 @@
         <h1 class="text-lg font-medium text-ink-500" id="matchup">{{ game.home }} : {{ game.away }}</h1>
 
         <div class="mt-5 flex items-center justify-center gap-5">
-            {% if is_owner %}
+            {# The whistle takes the controls away; the voter refuses the routes
+               behind them either way. #}
+            {% if is_owner and not is_finished %}
                 <div class="flex flex-col gap-2">
                     <form method="post" action="{{ path('app_game_increase_home', {'slug': game.slug}) }}">
                         <input type="hidden" name="_token" value="{{ csrf_token('score') }}">
@@ -56,7 +59,7 @@
                 </div>
             {% endif %}
             <span class="text-6xl font-semibold tracking-tight text-ink-900 tabular-nums" id="score">{{ game.homepoints }} : {{ game.awaypoints }}</span>
-            {% if is_owner %}
+            {% if is_owner and not is_finished %}
                 <div class="flex flex-col gap-2">
                     <form method="post" action="{{ path('app_game_increase_away', {'slug': game.slug}) }}">
                         <input type="hidden" name="_token" value="{{ csrf_token('score') }}">
@@ -70,6 +73,8 @@
                 </div>
             {% endif %}
         </div>
+
+        <p class="mt-4 text-sm font-semibold uppercase tracking-wide text-ink-500" id="final" {% if not is_finished %}hidden{% endif %}>Endstand</p>
 
         <p class="mt-5 text-sm text-ink-400">{{ game.location }}</p>
         <p class="text-sm text-ink-400">{{ game.datetime ? game.datetime|date('d.m.Y H:i') : '' }}</p>
@@ -85,7 +90,7 @@
            snapshot the projector writes. Not the owner: nothing may rewrite the
            page under someone typing into the event form below. Hidden until the
            script takes over, so nobody is left with a switch that does nothing. #}
-        {% if not is_owner %}
+        {% if not is_owner and not is_finished %}
             <button class="btn-ghost" type="button" id="autorefresh-toggle" aria-pressed="true" data-snapshot="/games/{{ game.slug }}.json" hidden>
                 <span aria-hidden="true">⏱</span> <span id="autorefresh-label">Automatisch aktualisieren</span>
             </button>
@@ -102,7 +107,7 @@
         <input id="share-fallback" class="hidden w-full rounded-full border border-black/10 bg-white px-4 py-2 text-sm text-ink-700 sm:w-80" type="text" readonly value="{{ share_url }}" aria-label="Link zum Spiel">
     </div>
 
-    {% if is_owner %}
+    {% if is_owner and not is_finished %}
         <div class="card mb-6 rounded-3xl p-6">
             {{ render(controller('App\\Controller\\GameCommandController::gameEventForm', {'slug': game.slug})) }}
         </div>
@@ -124,6 +129,13 @@
         <a class="btn-ghost" href="{{ path('app_game_index') }}">← Zurück</a>
         {% if is_owner %}
             <a class="btn-ghost" href="{{ path('app_game_edit', {'slug': game.slug}) }}">Bearbeiten</a>
+
+            {# Revocable on purpose: a whistle in the 70th minute must not be the
+               end of the ticker. #}
+            <form method="post" action="{{ path('app_game_finish', {'slug': game.slug}) }}">
+                <input type="hidden" name="_token" value="{{ csrf_token('finish') }}">
+                <button class="btn-ghost">{{ is_finished ? 'Spiel wieder öffnen' : 'Spiel beenden' }}</button>
+            </form>
         {% endif %}
     </div>
 {% endblock %}
@@ -183,12 +195,14 @@
             const matchup = document.querySelector("#matchup");
             const score = document.querySelector("#score");
             const events = document.querySelector("#events");
+            const final = document.querySelector("#final");
             const snapshot = toggle.dataset.snapshot;
             const STORAGE_KEY = "tickerly:autorefresh";
             const INTERVAL = 60000;
             let timer = null;
             let seen = null;
             let current = null;
+            let over = false;
 
             // WCAG 2.2.2 asks for a way to stop this, and the choice has to
             // survive a reload — hence the stored flag.
@@ -241,6 +255,15 @@
                 matchup.textContent = game.home + " : " + game.away;
                 score.textContent = game.homepoints + " : " + game.awaypoints;
                 renderEvents(game.events);
+                final.hidden = !game.finished;
+
+                if (game.finished) {
+                    // Nothing will change again. Stop asking, and take away a
+                    // switch that now controls nothing.
+                    over = true;
+                    toggle.hidden = true;
+                    window.clearTimeout(timer);
+                }
             }
 
             // Sighted visitors see what moved. This is the same news for
@@ -251,9 +274,14 @@
                     return "";
                 }
 
+                const result = game.home + " " + game.homepoints + ", " + game.away + " " + game.awaypoints + ".";
+
+                if (game.finished && !previous.finished) {
+                    return "Spiel beendet. Endstand: " + result;
+                }
+
                 if (game.homepoints !== previous.homepoints || game.awaypoints !== previous.awaypoints) {
-                    return "Neuer Spielstand: " + game.home + " " + game.homepoints
-                        + ", " + game.away + " " + game.awaypoints + ".";
+                    return "Neuer Spielstand: " + result;
                 }
 
                 if (game.events.length > previous.events.length) {
@@ -303,7 +331,10 @@
 
                     try {
                         await poll();
-                        schedule();
+
+                        if (!over) {
+                            schedule();
+                        }
                     } catch (error) {
                         // No snapshot for this game yet, or it stopped being
                         // public: fall back to the plain reload, which renders

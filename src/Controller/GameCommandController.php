@@ -12,6 +12,7 @@ use App\Game\Application\Command\DecreaseHomePoints;
 use App\Game\Application\Command\DeleteGame;
 use App\Game\Application\Command\IncreaseAwayPoints;
 use App\Game\Application\Command\IncreaseHomePoints;
+use App\Game\Application\Command\SetGameFinished;
 use App\Game\Application\Command\UpdateGame;
 use App\Game\Infrastructure\CommandBus;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -80,7 +81,7 @@ class GameCommandController extends AbstractController
     }
 
     #[Route('/{slug}/increasehome', name: 'app_game_increase_home', methods: ['POST'])]
-    #[IsGranted('GAME_EDIT', subject: 'game')]
+    #[IsGranted('GAME_SCORE', subject: 'game')]
     #[IsCsrfTokenValid('score')]
     public function increaseHomePoints(Request $request, Game $game, MessageBusInterface $commandBus): Response
     {
@@ -92,7 +93,7 @@ class GameCommandController extends AbstractController
     }
 
     #[Route('/{slug}/decreasehome', name: 'app_game_decrease_home', methods: ['POST'])]
-    #[IsGranted('GAME_EDIT', subject: 'game')]
+    #[IsGranted('GAME_SCORE', subject: 'game')]
     #[IsCsrfTokenValid('score')]
     public function decreaseHomePoints(Request $request, Game $game, MessageBusInterface $commandBus): Response
     {
@@ -104,7 +105,7 @@ class GameCommandController extends AbstractController
     }
 
     #[Route('/{slug}/increaseaway', name: 'app_game_increase_away', methods: ['POST'])]
-    #[IsGranted('GAME_EDIT', subject: 'game')]
+    #[IsGranted('GAME_SCORE', subject: 'game')]
     #[IsCsrfTokenValid('score')]
     public function increaseAwayPoints(Request $request, Game $game, MessageBusInterface $commandBus): Response
     {
@@ -116,13 +117,29 @@ class GameCommandController extends AbstractController
     }
 
     #[Route('/{slug}/decreaseaway', name: 'app_game_decrease_away', methods: ['POST'])]
-    #[IsGranted('GAME_EDIT', subject: 'game')]
+    #[IsGranted('GAME_SCORE', subject: 'game')]
     #[IsCsrfTokenValid('score')]
     public function decreaseAwayPoints(Request $request, Game $game, MessageBusInterface $commandBus): Response
     {
         $decreaseAwayCommand = new DecreaseAwayPoints($game->getId());
         $commandBus->dispatch($decreaseAwayCommand);
 
+        return $this->redirectToRoute('app_game_show', ['slug' => $game->getSlug()]);
+    }
+
+    /**
+     * The final whistle, and taking it back. One route for both directions,
+     * because the owner is looking at the state they are flipping.
+     */
+    #[Route('/{slug}/finish', name: 'app_game_finish', methods: ['POST'])]
+    #[IsGranted('GAME_EDIT', subject: 'game')]
+    #[IsCsrfTokenValid('finish')]
+    public function finish(Game $game, CommandBus $commandBus): Response
+    {
+        $commandBus->dispatch(new SetGameFinished($game->getId(), !$game->isFinished()));
+
+        // No flash: only the admin layout renders them, and the page the owner
+        // lands on says plainly enough whether the game is over.
         return $this->redirectToRoute('app_game_show', ['slug' => $game->getSlug()]);
     }
 
@@ -138,7 +155,7 @@ class GameCommandController extends AbstractController
     }
 
     #[Route('/{slug}/events', name: 'app_event_new', methods: ['POST'])]
-    #[IsGranted('GAME_EDIT', subject: 'game')]
+    #[IsGranted('GAME_SCORE', subject: 'game')]
     public function gameEventNew(Request $request, Game $game, CommandBus $commandBus): Response
     {
         $form = $this->createForm(GameEventType::class);

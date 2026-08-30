@@ -63,8 +63,15 @@ models are fast and dependency-free, but they assume a single instance with a
 writable web root. Multiple app servers or a read-only filesystem would need the
 projector pointed somewhere shared instead.
 
+A game can be ended and reopened: the owner blows the final whistle from the game
+page, which freezes the score and the ticker without hiding anything. It stays
+revocable — an accidental whistle in the 70th minute must not be the end of the
+ticker — and the page of a finished game stops polling, because a final score
+does not change.
+
 Authorization sits in three places: a `GameVoter` grants access to a game only to
-its owner, `ROLE_ADMIN` guards `/admin` via `access_control`, and a `UserChecker`
+its owner — `GAME_EDIT` for what survives the whistle (renaming, deleting),
+`GAME_SCORE` for what it ends (points, ticker entries) — `ROLE_ADMIN` guards `/admin` via `access_control`, and a `UserChecker`
 refuses deactivated accounts at the firewall — with the correct password, and
 mid-session too.
 
