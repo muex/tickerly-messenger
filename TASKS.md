@@ -87,6 +87,42 @@ Prioritized findings and recommendations from a code analysis of the app
 
 - [x] **`CreateGameHandler` sets the owner twice** — removed the duplicate.
 
+- [x] **The edit command was decorative.** `edit()` bound the form to the
+  *managed* `Game`, so `handleRequest()` applied the change and the command that
+  followed only described what had already happened — unusable asynchronously,
+  and writable by any later flush. The form now binds a plain `GameData` object,
+  which leaves the handler as the only writer. `new` uses the same object.
+
+- [x] **Commands carried entities.** `CreateGame` took a `User` and
+  `CreateGameEvent` a `Game`, which cannot survive a queue. Both now carry a
+  `Uuid`; the handlers load what they write to and fail loudly if it is gone.
+  `UpdateGameHandler` checks for null too.
+
+- [x] **The CommandBus port was never injected.** Controllers took the concrete
+  `App\Game\Infrastructure\CommandBus` in some actions and Messenger's own
+  `MessageBusInterface` in others, so `App\Shared\Domain\CommandBus` appeared
+  only in the adapter's `implements`. Everything injects the interface now, as
+  the event side already did.
+
+### Open from the same review
+
+- [ ] **Side effects run inside the DB transaction.** `doctrine_transaction`
+  wraps the handler, the handler dispatches synchronously, and the projector
+  writes its JSON before the commit. A rollback afterwards leaves a file with a
+  state the database never had. Events belong after the commit.
+
+- [ ] **The `validation` middleware runs empty.** It hangs on both buses and no
+  command carries a constraint — nor does the form, now that `GameData` is the
+  obvious place for them.
+
+- [ ] **`GameStateChanged` is a cache signal, not a domain event.** It says that
+  something happened, not what. Right for projections, but nothing else can hook
+  onto it ("push a notification on a goal"). Split, or rename to what it is.
+
+- [ ] **There is no query side, and `GameQueryController` promises one.** The
+  read path goes straight to the repository and renders the aggregate. That is
+  the right call at this size; the name is what misleads.
+
 ## 🟢 Project hygiene
 
 - [x] **Add tests.** Installed `symfony/test-pack` (PHPUnit 13). Added:

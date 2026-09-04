@@ -5,7 +5,7 @@ namespace App\Controller;
 use App\Entity\Game;
 use App\Entity\User;
 use App\Game\Application\Command\SetGameActive;
-use App\Game\Infrastructure\CommandBus;
+use App\Shared\Domain\CommandBus;
 use App\Repository\GameRepository;
 use App\Repository\UserRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
