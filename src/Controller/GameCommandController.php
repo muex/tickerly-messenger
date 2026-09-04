@@ -14,11 +14,11 @@ use App\Game\Application\Command\IncreaseAwayPoints;
 use App\Game\Application\Command\IncreaseHomePoints;
 use App\Game\Application\Command\SetGameFinished;
 use App\Game\Application\Command\UpdateGame;
-use App\Game\Infrastructure\CommandBus;
+use App\Form\Model\GameData;
+use App\Shared\Domain\CommandBus;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Attribute\IsCsrfTokenValid;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
@@ -35,14 +35,14 @@ class GameCommandController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
 
-            $game = $form->getData();
+            $data = $form->getData();
 
             $gameCommand = new CreateGame(
-                $game->getHome(),
-                $game->getAway(),
-                $game->getLocation(),
-                $game->getDatetime(),
-                $this->getUser()
+                $data->home,
+                $data->away,
+                $data->location,
+                $data->datetime,
+                $this->getUser()->getId(),
             );
             $commandBus->dispatch($gameCommand);
 
@@ -58,16 +58,21 @@ class GameCommandController extends AbstractController
     #[IsGranted('GAME_EDIT', subject: 'game')]
     public function edit(Request $request, Game $game, CommandBus $commandBus): Response
     {
-        $form = $this->createForm(GameType::class, $game);
+        // Bound to a copy, not to the game itself: otherwise handleRequest()
+        // would already have applied the change and the command below would be
+        // describing something that had happened without it.
+        $form = $this->createForm(GameType::class, GameData::fromGame($game));
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            $data = $form->getData();
+
             $updateGameCommand = new UpdateGame(
                 $game->getId(),
-                $game->getHome(),
-                $game->getAway(),
-                $game->getLocation(),
-                $game->getDatetime(),
+                $data->home,
+                $data->away,
+                $data->location,
+                $data->datetime,
             );
             $commandBus->dispatch($updateGameCommand);
 
@@ -83,7 +88,7 @@ class GameCommandController extends AbstractController
     #[Route('/{slug}/increasehome', name: 'app_game_increase_home', methods: ['POST'])]
     #[IsGranted('GAME_SCORE', subject: 'game')]
     #[IsCsrfTokenValid('score')]
-    public function increaseHomePoints(Request $request, Game $game, MessageBusInterface $commandBus): Response
+    public function increaseHomePoints(Request $request, Game $game, CommandBus $commandBus): Response
     {
         $id = $game->getId();
         $increaseHomeCommand = new IncreaseHomePoints($id);
@@ -95,7 +100,7 @@ class GameCommandController extends AbstractController
     #[Route('/{slug}/decreasehome', name: 'app_game_decrease_home', methods: ['POST'])]
     #[IsGranted('GAME_SCORE', subject: 'game')]
     #[IsCsrfTokenValid('score')]
-    public function decreaseHomePoints(Request $request, Game $game, MessageBusInterface $commandBus): Response
+    public function decreaseHomePoints(Request $request, Game $game, CommandBus $commandBus): Response
     {
         $id = $game->getId();
         $increaseHomeCommand = new DecreaseHomePoints($id);
@@ -107,7 +112,7 @@ class GameCommandController extends AbstractController
     #[Route('/{slug}/increaseaway', name: 'app_game_increase_away', methods: ['POST'])]
     #[IsGranted('GAME_SCORE', subject: 'game')]
     #[IsCsrfTokenValid('score')]
-    public function increaseAwayPoints(Request $request, Game $game, MessageBusInterface $commandBus): Response
+    public function increaseAwayPoints(Request $request, Game $game, CommandBus $commandBus): Response
     {
         $id = $game->getId();
         $increaseAwayCommand = new IncreaseAwayPoints($id);
@@ -119,7 +124,7 @@ class GameCommandController extends AbstractController
     #[Route('/{slug}/decreaseaway', name: 'app_game_decrease_away', methods: ['POST'])]
     #[IsGranted('GAME_SCORE', subject: 'game')]
     #[IsCsrfTokenValid('score')]
-    public function decreaseAwayPoints(Request $request, Game $game, MessageBusInterface $commandBus): Response
+    public function decreaseAwayPoints(Request $request, Game $game, CommandBus $commandBus): Response
     {
         $decreaseAwayCommand = new DecreaseAwayPoints($game->getId());
         $commandBus->dispatch($decreaseAwayCommand);
@@ -146,7 +151,7 @@ class GameCommandController extends AbstractController
     #[Route('/{slug}/delete', name: 'app_game_delete', methods: ['POST'])]
     #[IsGranted('GAME_EDIT', subject: 'game')]
     #[IsCsrfTokenValid('delete')]
-    public function delete(Request $request, Game $game, MessageBusInterface $commandBus): Response
+    public function delete(Request $request, Game $game, CommandBus $commandBus): Response
     {
         $deleteGameCommand = new DeleteGame($game->getId());
         $commandBus->dispatch($deleteGameCommand);
@@ -165,10 +170,9 @@ class GameCommandController extends AbstractController
             $gameevent = $form->getData();
 
             $gameEventCommand = new CreateGameEvent(
-                $game,
+                $game->getId(),
                 $gameevent->getTimecode(),
                 $gameevent->getMessage(),
-
             );
             $commandBus->dispatch($gameEventCommand);
 

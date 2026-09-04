@@ -7,17 +7,13 @@ use Symfony\Component\Uid\Uuid;
 
 final class UpdateGame implements Command
 {
-    private $home;
-    private $away;
-    private $location;
-    private $datetime;
-
-    public function __construct(private Uuid $gameId, string $home, string $away, string $location, \DateTime $dateTime){
-        $this->home = $home;
-        $this->away = $away;
-        $this->location = $location;
-        $this->datetime = $dateTime;
-    }
+    public function __construct(
+        private Uuid $gameId,
+        private string $home,
+        private string $away,
+        private string $location,
+        private \DateTimeInterface $datetime,
+    ) {}
 
     public function getGameId(): Uuid
     {
@@ -39,7 +35,7 @@ final class UpdateGame implements Command
         return $this->location;
     }
 
-    public function getDatetime(): \DateTime
+    public function getDatetime(): \DateTimeInterface
     {
         return $this->datetime;
     }

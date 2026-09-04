@@ -2,24 +2,22 @@
 
 namespace App\Game\Application\Command;
 
-use App\Entity\User;
 use App\Shared\Domain\Command;
+use Symfony\Component\Uid\Uuid;
 
+/**
+ * Carries the owner by id, not as an entity: a command has to survive being
+ * put on a queue, and an entity does not.
+ */
 final class CreateGame implements Command
 {
-    private $home;
-    private $away;
-    private $location;
-    private $datetime;
-    private $owner;
-
-    public function __construct(string $home, string $away, string $location, \DateTime $dateTime, User $owner){
-        $this->home = $home;
-        $this->away = $away;
-        $this->location = $location;
-        $this->datetime = $dateTime;
-        $this->owner = $owner;
-    }
+    public function __construct(
+        private string $home,
+        private string $away,
+        private string $location,
+        private \DateTimeInterface $datetime,
+        private Uuid $ownerId,
+    ) {}
 
     public function getHome(): string
     {
@@ -36,13 +34,13 @@ final class CreateGame implements Command
         return $this->location;
     }
 
-    public function getDatetime(): \DateTime
+    public function getDatetime(): \DateTimeInterface
     {
         return $this->datetime;
     }
 
-    public function getOwner(): User
+    public function getOwnerId(): Uuid
     {
-        return $this->owner;
+        return $this->ownerId;
     }
 }

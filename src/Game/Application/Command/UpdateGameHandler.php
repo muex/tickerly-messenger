@@ -15,6 +15,11 @@ class UpdateGameHandler
     public function __invoke(UpdateGame $updateGame)
     {
         $game = $this->gameRepository->find($updateGame->getGameId());
+
+        if ($game === null) {
+            throw new \RuntimeException('Cannot update a game that no longer exists.');
+        }
+
         $game->setHome($updateGame->getHome());
         $game->setAway($updateGame->getAway());
         $game->setLocation($updateGame->getLocation());
