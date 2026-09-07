@@ -3,7 +3,9 @@
 namespace App\Form;
 
 use App\Form\Model\GameData;
+use App\Game\Domain\Sport\SportCatalog;
 use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\DateTimeType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
@@ -11,6 +13,8 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 
 class GameType extends AbstractType
 {
+    public function __construct(private SportCatalog $sportCatalog) {}
+
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
@@ -29,6 +33,13 @@ class GameType extends AbstractType
             ->add('datetime', DateTimeType::class, [
                 'label' => 'Datum & Uhrzeit',
                 'widget' => 'single_text',
+            ])
+            // The choices come from the catalog, so a new sport class shows up
+            // here without this form knowing anything about it.
+            ->add('sport', ChoiceType::class, [
+                'label' => 'Sportart',
+                'choices' => $this->sportCatalog->choices(),
+                'help' => 'Bestimmt die Ereignis-Buttons während des Spiels.',
             ])
         ;
     }

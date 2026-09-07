@@ -16,6 +16,7 @@ final class CreateGame implements Command
         private string $away,
         private string $location,
         private \DateTimeInterface $datetime,
+        private string $sport,
         private Uuid $ownerId,
     ) {}
 
@@ -37,6 +38,11 @@ final class CreateGame implements Command
     public function getDatetime(): \DateTimeInterface
     {
         return $this->datetime;
+    }
+
+    public function getSport(): string
+    {
+        return $this->sport;
     }
 
     public function getOwnerId(): Uuid

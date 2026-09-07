@@ -20,6 +20,14 @@ class GameEvent
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $message = null;
 
+    /**
+     * The key of the SportEvent this entry came from, or null for something the
+     * owner simply typed. Only the key is kept: the label and the symbol belong
+     * to the catalog, so they can be changed without touching a single row.
+     */
+    #[ORM\Column(length: 64, nullable: true)]
+    private ?string $type = null;
+
     #[ORM\ManyToOne(inversedBy: 'gameEvents')]
     private ?Game $game = null;
 
@@ -53,6 +61,18 @@ class GameEvent
     public function setMessage(?string $message): self
     {
         $this->message = $message;
+
+        return $this;
+    }
+
+    public function getType(): ?string
+    {
+        return $this->type;
+    }
+
+    public function setType(?string $type): self
+    {
+        $this->type = $type;
 
         return $this;
     }

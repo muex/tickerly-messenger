@@ -34,6 +34,7 @@ class CreateGameHandler
         $newGame->setAway($game->getAway());
         $newGame->setLocation($game->getLocation());
         $newGame->setDatetime($game->getDatetime());
+        $newGame->setSport($game->getSport());
         $newGame->setSlug($this->gameSlugger->slugFor($game->getHome(), $game->getAway(), $game->getDatetime()));
 
         $this->gameRepository->save($newGame, true);
