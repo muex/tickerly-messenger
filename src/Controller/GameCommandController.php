@@ -12,9 +12,11 @@ use App\Game\Application\Command\DecreaseHomePoints;
 use App\Game\Application\Command\DeleteGame;
 use App\Game\Application\Command\IncreaseAwayPoints;
 use App\Game\Application\Command\IncreaseHomePoints;
+use App\Game\Application\Command\RecordSportEvent;
 use App\Game\Application\Command\SetGameFinished;
 use App\Game\Application\Command\UpdateGame;
 use App\Form\Model\GameData;
+use App\Game\Domain\Side;
 use App\Shared\Domain\CommandBus;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -42,6 +44,7 @@ class GameCommandController extends AbstractController
                 $data->away,
                 $data->location,
                 $data->datetime,
+                $data->sport,
                 $this->getUser()->getId(),
             );
             $commandBus->dispatch($gameCommand);
@@ -73,6 +76,7 @@ class GameCommandController extends AbstractController
                 $data->away,
                 $data->location,
                 $data->datetime,
+                $data->sport,
             );
             $commandBus->dispatch($updateGameCommand);
 
@@ -136,6 +140,37 @@ class GameCommandController extends AbstractController
      * The final whistle, and taking it back. One route for both directions,
      * because the owner is looking at the state they are flipping.
      */
+    /**
+     * One tap on a sport's button. The form posts which event and which side;
+     * the handler refuses anything that is not an event of this game's sport,
+     * so the points a request can award are not the caller's to choose.
+     */
+    #[Route('/{slug}/record', name: 'app_game_record', methods: ['POST'])]
+    #[IsGranted('GAME_SCORE', subject: 'game')]
+    #[IsCsrfTokenValid('score')]
+    public function record(Request $request, Game $game, CommandBus $commandBus): Response
+    {
+        // "tor:home" — the pressed button is the only one that submits, so it
+        // carries what happened and which team it belongs to in one value.
+        [$eventKey, $sideKey] = array_pad(explode(':', (string) $request->request->get('event'), 2), 2, '');
+        $side = Side::tryFrom($sideKey);
+
+        if ($side === null || $eventKey === '') {
+            throw $this->createNotFoundException('Kein Ereignis angegeben.');
+        }
+
+        $timecode = trim((string) $request->request->get('timecode'));
+
+        $commandBus->dispatch(new RecordSportEvent(
+            $game->getId(),
+            $eventKey,
+            $side,
+            $timecode === '' ? null : $timecode,
+        ));
+
+        return $this->redirectToRoute('app_game_show', ['slug' => $game->getSlug()]);
+    }
+
     #[Route('/{slug}/finish', name: 'app_game_finish', methods: ['POST'])]
     #[IsGranted('GAME_EDIT', subject: 'game')]
     #[IsCsrfTokenValid('finish')]

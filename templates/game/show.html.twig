@@ -4,6 +4,7 @@
 
 {% set is_owner = app.user and app.user.email == game.owner.email %}
 {% set is_finished = game.finished %}
+{% set has_events = sport.events is not empty %}
 {% set share_url = url('app_game_show', {'slug': game.slug}) %}
 {% set share_title = game.home ~ ' ' ~ game.homepoints ~ ' : ' ~ game.awaypoints ~ ' ' ~ game.away %}
 {% set share_text = game.location ~ ' · ' ~ (game.datetime ? game.datetime|date('d.m.Y H:i') : '') %}
@@ -44,35 +45,44 @@
 
         <div class="mt-5 flex items-center justify-center gap-5">
             {# The whistle takes the controls away; the voter refuses the routes
-               behind them either way. #}
+               behind them either way. In a sport the plus is the event grid
+               below — only the minus stays here, to take a mistap back. #}
             {% if is_owner and not is_finished %}
                 <div class="flex flex-col gap-2">
-                    <form method="post" action="{{ path('app_game_increase_home', {'slug': game.slug}) }}">
-                        <input type="hidden" name="_token" value="{{ csrf_token('score') }}">
-                        <button class="grid h-9 w-9 place-items-center rounded-full bg-ink-900 text-sm font-semibold text-white transition hover:bg-ink-700 active:scale-95">H+</button>
-                    </form>
+                    {% if not has_events %}
+                        <form method="post" action="{{ path('app_game_increase_home', {'slug': game.slug}) }}">
+                            <input type="hidden" name="_token" value="{{ csrf_token('score') }}">
+                            <button class="grid h-9 w-9 place-items-center rounded-full bg-ink-900 text-sm font-semibold text-white transition hover:bg-ink-700 active:scale-95">H+</button>
+                        </form>
+                    {% endif %}
                     <form method="post" action="{{ path('app_game_decrease_home', {'slug': game.slug}) }}">
                         <input type="hidden" name="_token" value="{{ csrf_token('score') }}">
                         {# Nothing to take away at nil; the handler clamps too. #}
-                        <button class="grid h-9 w-9 place-items-center rounded-full bg-black/5 text-sm font-semibold text-ink-600 transition enabled:hover:bg-black/10 enabled:active:scale-95 disabled:cursor-not-allowed disabled:opacity-40" {% if game.homepoints == 0 %}disabled{% endif %}>H−</button>
+                        <button class="grid h-9 w-9 place-items-center rounded-full bg-black/5 text-sm font-semibold text-ink-600 transition enabled:hover:bg-black/10 enabled:active:scale-95 disabled:cursor-not-allowed disabled:opacity-40" title="Punkt zurücknehmen" {% if game.homepoints == 0 %}disabled{% endif %}>H−</button>
                     </form>
                 </div>
             {% endif %}
             <span class="text-6xl font-semibold tracking-tight text-ink-900 tabular-nums" id="score">{{ game.homepoints }} : {{ game.awaypoints }}</span>
             {% if is_owner and not is_finished %}
                 <div class="flex flex-col gap-2">
-                    <form method="post" action="{{ path('app_game_increase_away', {'slug': game.slug}) }}">
-                        <input type="hidden" name="_token" value="{{ csrf_token('score') }}">
-                        <button class="grid h-9 w-9 place-items-center rounded-full bg-ink-900 text-sm font-semibold text-white transition hover:bg-ink-700 active:scale-95">A+</button>
-                    </form>
+                    {% if not has_events %}
+                        <form method="post" action="{{ path('app_game_increase_away', {'slug': game.slug}) }}">
+                            <input type="hidden" name="_token" value="{{ csrf_token('score') }}">
+                            <button class="grid h-9 w-9 place-items-center rounded-full bg-ink-900 text-sm font-semibold text-white transition hover:bg-ink-700 active:scale-95">A+</button>
+                        </form>
+                    {% endif %}
                     <form method="post" action="{{ path('app_game_decrease_away', {'slug': game.slug}) }}">
                         <input type="hidden" name="_token" value="{{ csrf_token('score') }}">
                         {# Nothing to take away at nil; the handler clamps too. #}
-                        <button class="grid h-9 w-9 place-items-center rounded-full bg-black/5 text-sm font-semibold text-ink-600 transition enabled:hover:bg-black/10 enabled:active:scale-95 disabled:cursor-not-allowed disabled:opacity-40" {% if game.awaypoints == 0 %}disabled{% endif %}>A−</button>
+                        <button class="grid h-9 w-9 place-items-center rounded-full bg-black/5 text-sm font-semibold text-ink-600 transition enabled:hover:bg-black/10 enabled:active:scale-95 disabled:cursor-not-allowed disabled:opacity-40" title="Punkt zurücknehmen" {% if game.awaypoints == 0 %}disabled{% endif %}>A−</button>
                     </form>
                 </div>
             {% endif %}
         </div>
+
+        {% if has_events %}
+            <p class="mt-4 text-sm text-ink-500"><span aria-hidden="true">{{ sport.icon }}</span> {{ sport.label }}</p>
+        {% endif %}
 
         <p class="mt-4 text-sm font-semibold uppercase tracking-wide text-ink-500" id="final" {% if not is_finished %}hidden{% endif %}>Endstand</p>
 
@@ -107,6 +117,38 @@
         <input id="share-fallback" class="hidden w-full rounded-full border border-black/10 bg-white px-4 py-2 text-sm text-ink-700 sm:w-80" type="text" readonly value="{{ share_url }}" aria-label="Link zum Spiel">
     </div>
 
+    {% if is_owner and not is_finished and has_events %}
+        {# One form, many submit buttons: the minute is typed once and travels
+           with whichever event is tapped. #}
+        <form class="card mb-6 rounded-3xl p-6" method="post" action="{{ path('app_game_record', {'slug': game.slug}) }}">
+            <input type="hidden" name="_token" value="{{ csrf_token('score') }}">
+
+            <div class="mb-5 flex items-center gap-3">
+                <label class="text-sm font-medium text-ink-600" for="record-timecode">Minute</label>
+                <input class="w-24 rounded-full border border-black/10 bg-white px-4 py-2 text-sm text-ink-700" type="text" id="record-timecode" name="timecode" inputmode="numeric" placeholder="67'">
+            </div>
+
+            <div class="grid gap-5 sm:grid-cols-2">
+                {% for side, team in {'home': game.home, 'away': game.away} %}
+                    <div>
+                        <p class="mb-2 text-sm font-semibold text-ink-700">{{ team }}</p>
+                        <div class="flex flex-wrap gap-2">
+                            {% for event in sport.events %}
+                                {# The button that was pressed is the only one
+                                   that submits its value, so it carries both
+                                   what happened and to whom. #}
+                                <button class="inline-flex items-center gap-1.5 rounded-full border border-black/10 bg-white px-3.5 py-2 text-sm font-medium text-ink-700 transition hover:bg-black/5 active:scale-95" name="event" value="{{ event.key }}:{{ side }}">
+                                    <span aria-hidden="true">{{ event.icon }}</span>
+                                    {{ event.label }}{% if event.points %} <span class="text-ink-400">+{{ event.points }}</span>{% endif %}
+                                </button>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </form>
+    {% endif %}
+
     {% if is_owner and not is_finished %}
         <div class="card mb-6 rounded-3xl p-6">
             {{ render(controller('App\\Controller\\GameCommandController::gameEventForm', {'slug': game.slug})) }}
@@ -119,7 +161,12 @@
     <div class="space-y-2" id="events">
         {% for event in game.gameevents %}
             <div class="card flex items-baseline gap-3 rounded-2xl px-5 py-3.5">
-                <span class="shrink-0 rounded-full bg-brand-50 px-2.5 py-0.5 text-sm font-semibold text-brand-600 tabular-nums">{{ event.timecode }}</span>
+                {% if event.timecode %}
+                    <span class="shrink-0 rounded-full bg-brand-50 px-2.5 py-0.5 text-sm font-semibold text-brand-600 tabular-nums">{{ event.timecode }}</span>
+                {% endif %}
+                {% if event_icons[event.type] is defined %}
+                    <span class="shrink-0" aria-hidden="true">{{ event_icons[event.type] }}</span>
+                {% endif %}
                 <span class="text-ink-700">{{ event.message }}</span>
             </div>
         {% endfor %}
@@ -237,15 +284,28 @@
                     const row = document.createElement("div");
                     row.className = "card flex items-baseline gap-3 rounded-2xl px-5 py-3.5";
 
-                    const timecode = document.createElement("span");
-                    timecode.className = "shrink-0 rounded-full bg-brand-50 px-2.5 py-0.5 text-sm font-semibold text-brand-600 tabular-nums";
-                    timecode.textContent = event.timecode ?? "";
+                    if (event.timecode) {
+                        const timecode = document.createElement("span");
+                        timecode.className = "shrink-0 rounded-full bg-brand-50 px-2.5 py-0.5 text-sm font-semibold text-brand-600 tabular-nums";
+                        timecode.textContent = event.timecode;
+                        row.append(timecode);
+                    }
+
+                    // The symbol of the sport's event, where the entry came
+                    // from a button rather than from someone typing.
+                    if (event.icon) {
+                        const icon = document.createElement("span");
+                        icon.className = "shrink-0";
+                        icon.setAttribute("aria-hidden", "true");
+                        icon.textContent = event.icon;
+                        row.append(icon);
+                    }
 
                     const message = document.createElement("span");
                     message.className = "text-ink-700";
                     message.textContent = event.message ?? "";
 
-                    row.append(timecode, message);
+                    row.append(message);
 
                     return row;
                 }));

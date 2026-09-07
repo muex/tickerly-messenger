@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Form\Model;
 
 use App\Entity\Game;
+use App\Game\Domain\Sport\OpenSport;
 
 /**
  * What the game form edits.
@@ -24,6 +25,8 @@ class GameData
 
     public ?\DateTimeInterface $datetime = null;
 
+    public string $sport = OpenSport::KEY;
+
     public static function fromGame(Game $game): self
     {
         $data = new self();
@@ -31,6 +34,7 @@ class GameData
         $data->away = $game->getAway();
         $data->location = $game->getLocation();
         $data->datetime = $game->getDatetime();
+        $data->sport = $game->getSport();
 
         return $data;
     }

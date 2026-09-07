@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Game\Infrastructure;
 
 use App\Entity\Game;
+use App\Game\Domain\Sport\SportCatalog;
 use App\Repository\GameRepository;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
@@ -25,6 +26,7 @@ class GameProjector
 
     public function __construct(
         private GameRepository $gameRepository,
+        private SportCatalog $sportCatalog,
         #[Autowire('%kernel.project_dir%/public')] private string $webRoot,
     ) {}
 
@@ -97,6 +99,7 @@ class GameProjector
 
         $this->writeJson(self::GAME_DIRECTORY . '/' . $slug . '.json', [
             'slug' => $slug,
+            'sport' => $game->getSport(),
             'home' => $game->getHome(),
             'away' => $game->getAway(),
             'homepoints' => $game->getHomepoints(),
@@ -147,12 +150,22 @@ class GameProjector
      */
     private function toEventReadModel(Game $game): array
     {
+        $sport = $this->sportCatalog->get($game->getSport());
+        $icons = [];
+
+        foreach ($sport->events() as $sportEvent) {
+            $icons[$sportEvent->key] = $sportEvent->icon;
+        }
+
         $events = [];
 
         foreach ($game->getGameEvents() as $event) {
             $events[] = [
                 'timecode' => $event->getTimecode(),
                 'message' => $event->getMessage(),
+                // Resolved here rather than stored, so a symbol can be changed
+                // in the catalog and the next projection picks it up.
+                'icon' => $icons[$event->getType() ?? ''] ?? null,
             ];
         }
 

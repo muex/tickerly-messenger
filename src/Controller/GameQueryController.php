@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Game;
+use App\Game\Domain\Sport\SportCatalog;
 use App\Game\Infrastructure\GameCardRenderer;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -22,12 +23,21 @@ class GameQueryController extends AbstractController
     // A slug always carries at least one hyphen ("falcons-vs-sharks-2026-08-25"),
     // so this can never swallow /games/new regardless of route ordering.
     #[Route('/{slug<[a-z0-9]+(?:-[a-z0-9]+)+>}', name: 'app_game_show', methods: ['GET'])]
-    public function show(Game $game, GameCardRenderer $cardRenderer): Response
+    public function show(Game $game, GameCardRenderer $cardRenderer, SportCatalog $sportCatalog): Response
     {
         $this->denyUnlessVisible($game);
 
+        $sport = $sportCatalog->get($game->getSport());
+
         return $this->render('game/show.html.twig', [
             'game' => $game,
+            'sport' => $sport,
+            // Key to symbol, so the ticker can mark an entry without the
+            // template walking the event list for every row.
+            'event_icons' => array_column(array_map(
+                static fn ($event): array => ['key' => $event->key, 'icon' => $event->icon],
+                $sport->events(),
+            ), 'icon', 'key'),
             // Null where the server cannot draw the card, so the page leaves the
             // image tags out rather than pointing a crawler at a broken URL.
             'card_version' => $cardRenderer->isAvailable() ? $cardRenderer->versionFor($game) : null,

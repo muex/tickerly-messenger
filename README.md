@@ -16,8 +16,12 @@ The UI is in German. Running at [tickerly.de](https://tickerly.de).
   live score and the event feed. No login needed to watch.
 - **Accounts** — anyone can register; each game belongs to the user who created
   it, and only that user can score or edit it.
-- **Ticker controls** — increment or decrement either side, and add timestamped
-  events ("67' — Dreier von außen").
+- **Sports** — a game is tickered in a sport or simply "offen". The sport
+  decides which buttons the owner gets and what a tap is worth: a three-pointer
+  is worth three, a red card nothing. Each entry carries the symbol of what
+  happened.
+- **Ticker controls** — the sport's own events in one tap, timestamped free-text
+  entries for everything else, and a minus on each side to take a mistap back.
 - **Admin area** — overview of users and games, and activating or deactivating
   either. A deactivated user keeps their data but can no longer sign in; a
   deactivated game disappears from the public lists.
@@ -68,6 +72,14 @@ page, which freezes the score and the ticker without hiding anything. It stays
 revocable — an accidental whistle in the 70th minute must not be the end of the
 ticker — and the page of a finished game stops polling, because a final score
 does not change.
+
+Sports live in code, not in the database: one class per sport under
+`src/Game/Domain/Sport/`, tagged and collected into a `SportCatalog`. Adding one
+is that single file — it appears in the form, on the page and in the snapshot
+without anything else being touched. A game stores only the key, so a sport can
+be retired without a migration; a game pointing at one that is gone falls back
+to the open scoreboard. The symbol of an entry is resolved from the catalog at
+projection time rather than stored, so symbols can be changed freely.
 
 Authorization sits in three places: a `GameVoter` grants access to a game only to
 its owner — `GAME_EDIT` for what survives the whistle (renaming, deleting),
@@ -149,6 +161,8 @@ src/
     Application/
       Command/           commands + their handlers
       Event/             GameStateChanged + handler
+    Domain/
+      Sport/             the sports and their events, one class each
     Infrastructure/      bus adapters, GameProjector
   Shared/Domain/         Command/Event/bus interfaces
 templates/               Twig, styled with Tailwind utility classes

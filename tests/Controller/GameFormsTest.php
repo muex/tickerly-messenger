@@ -23,6 +23,7 @@ class GameFormsTest extends FunctionalTestCase
             'game[away]' => 'Bären',
             'game[location]' => 'Waldstadion',
             'game[datetime]' => '2026-12-24T18:00',
+            'game[sport]' => 'handball',
         ]));
 
         $game = $this->findBySlug('woelfe-vs-baeren-2026-12-24');
@@ -30,6 +31,7 @@ class GameFormsTest extends FunctionalTestCase
         $this->assertNotNull($game, 'The game was not created.');
         $this->assertSame('Wölfe', $game->getHome());
         $this->assertSame('Waldstadion', $game->getLocation());
+        $this->assertSame('handball', $game->getSport());
         $this->assertSame($owner->getId()->toRfc4122(), $game->getOwner()->getId()->toRfc4122());
     }
 
@@ -45,6 +47,22 @@ class GameFormsTest extends FunctionalTestCase
         ]));
 
         $this->assertSame('Falken', $this->reload($game)->getHome());
+    }
+
+    public function testTheSportCanStillBeChangedAfterwards(): void
+    {
+        $owner = $this->createUser('owner@example.com');
+        $game = $this->createGame($owner, 'wrong-vs-sport-2026-12-01');
+
+        $this->client->loginUser($owner);
+        $crawler = $this->client->request('GET', '/games/' . $game->getSlug() . '/edit');
+        $this->client->submit($crawler->selectButton('Aktualisieren')->form([
+            'game[sport]' => 'volleyball',
+        ]));
+
+        // Picked the wrong one when creating the game, or picked it before
+        // knowing: either way it must not be frozen.
+        $this->assertSame('volleyball', $this->reload($game)->getSport());
     }
 
     public function testASubmissionThatFailsValidationChangesNothing(): void

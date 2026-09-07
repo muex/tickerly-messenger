@@ -4,6 +4,9 @@ namespace App\Tests\Game\Infrastructure;
 
 use App\Entity\Game;
 use App\Entity\GameEvent;
+use App\Game\Domain\Sport\Football;
+use App\Game\Domain\Sport\OpenSport;
+use App\Game\Domain\Sport\SportCatalog;
 use App\Game\Infrastructure\GameProjector;
 use App\Repository\GameRepository;
 use PHPUnit\Framework\TestCase;
@@ -49,7 +52,10 @@ class GameProjectorTest extends TestCase
         $this->assertSame(2, $snapshot['homepoints']);
         $this->assertSame(0, $snapshot['awaypoints']);
         $this->assertSame('Falcons', $snapshot['home']);
-        $this->assertSame([['timecode' => '12', 'message' => 'Tor für die Falcons']], $snapshot['events']);
+        $this->assertSame(
+            [['timecode' => '12', 'message' => 'Tor für die Falcons', 'icon' => null]],
+            $snapshot['events'],
+        );
     }
 
     public function testADeactivatedGameLosesItsSnapshot(): void
@@ -96,7 +102,7 @@ class GameProjectorTest extends TestCase
         $repository->method('findOneBy')->willReturn($game);
         $repository->method('findActive')->willReturn($game !== null && $game->isActive() ? [$game] : []);
 
-        return new GameProjector($repository, $this->webRoot);
+        return new GameProjector($repository, new SportCatalog([new OpenSport(), new Football()]), $this->webRoot);
     }
 
     private function game(): Game

@@ -69,10 +69,12 @@ abstract class FunctionalTestCase extends WebTestCase
         int $homepoints = 0,
         int $awaypoints = 0,
         ?\DateTimeImmutable $finishedAt = null,
+        string $sport = 'offen',
     ): Game
     {
         $game = (new Game())
             ->setFinishedAt($finishedAt)
+            ->setSport($sport)
             ->setHome('Falcons')
             ->setAway('Sharks')
             ->setLocation('Stadthalle')

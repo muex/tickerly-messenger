@@ -61,7 +61,10 @@ class LiveSnapshotTest extends FunctionalTestCase
 
         $written = json_decode(file_get_contents($snapshot), true);
 
-        $this->assertSame([['timecode' => '67', 'message' => 'Gelbe Karte']], $written['events']);
+        $this->assertSame(
+            [['timecode' => '67', 'message' => 'Gelbe Karte', 'icon' => null]],
+            $written['events'],
+        );
     }
 
     public function testTheFinalWhistleReachesTheSnapshot(): void

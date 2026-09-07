@@ -24,6 +24,7 @@ class UpdateGameHandler
         $game->setAway($updateGame->getAway());
         $game->setLocation($updateGame->getLocation());
         $game->setDatetime($updateGame->getDatetime());
+        $game->setSport($updateGame->getSport());
 
         $this->gameRepository->save($game, true);
 

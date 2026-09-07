@@ -13,6 +13,7 @@ final class UpdateGame implements Command
         private string $away,
         private string $location,
         private \DateTimeInterface $datetime,
+        private string $sport,
     ) {}
 
     public function getGameId(): Uuid
@@ -38,5 +39,10 @@ final class UpdateGame implements Command
     public function getDatetime(): \DateTimeInterface
     {
         return $this->datetime;
+    }
+
+    public function getSport(): string
+    {
+        return $this->sport;
     }
 }

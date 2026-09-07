@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Game\Domain\Sport\OpenSport;
 use App\Repository\GameRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -49,6 +50,14 @@ class Game
      */
     #[ORM\Column(options: ['default' => true])]
     private bool $active = true;
+
+    /**
+     * Which sport this is tickered in, as the key of a Sport in the catalog.
+     * Not a foreign key: the sports live in code, and a game that outlives one
+     * of them falls back to the open scoreboard rather than breaking.
+     */
+    #[ORM\Column(length: 32, options: ['default' => OpenSport::KEY])]
+    private string $sport = OpenSport::KEY;
 
     /**
      * When the owner blew the whistle. A finished game keeps its page and its
@@ -176,6 +185,18 @@ class Game
     public function setActive(bool $active): self
     {
         $this->active = $active;
+
+        return $this;
+    }
+
+    public function getSport(): string
+    {
+        return $this->sport;
+    }
+
+    public function setSport(string $sport): self
+    {
+        $this->sport = $sport;
 
         return $this;
     }
