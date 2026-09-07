@@ -1,10 +1,31 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Tickerly – Live-Ticker für Amateursport{% endblock %}
+{% block title %}Tickerly – Kostenloser Live-Ticker für Amateursport{% endblock %}
+
+{% set sport_labels = sports|map(sport => sport.label)|join(', ') %}
+{% set faq = [
+    {
+        question: 'Was kostet Tickerly?',
+        answer: 'Nichts. Konto anlegen, Ticker erstellen, Link teilen.'
+    },
+    {
+        question: 'Brauchen Zuschauer eine App oder ein Konto?',
+        answer: 'Nein. Der Link öffnet die Spielseite im Browser — zum Zuschauen ist keine Anmeldung nötig und nichts zu installieren.'
+    },
+    {
+        question: 'Welche Sportarten gibt es?',
+        answer: sport_labels ~ ' — und „Offen“ für alles andere: ein Spielstand und Ereignisse in eigenen Worten. Die Sportart bestimmt, welche Buttons du beim Tickern bekommst und was ein Tipp wert ist: ein Dreier zählt drei, eine rote Karte keinen Punkt.'
+    },
+    {
+        question: 'Wie schnell sehen Zuschauer einen neuen Spielstand?',
+        answer: 'Die Spielseite holt sich den Stand einmal pro Minute von selbst, ohne dass jemand neu laden muss. Wer nicht warten will, tippt auf „Aktualisieren“.'
+    }
+] %}
 
 {% block head_meta %}
     {% set page_url = url('app_home') %}
-    {% set page_description = 'Live-Ticker für Amateursport: Spielstand und Ereignisse in Sekunden beim Publikum. Ticker in einer Minute anlegen, per Link teilen — ohne App, ohne Anmeldung fürs Zuschauen.' %}
+    {# Kept under ~160 characters, which is where a search result gets cut. #}
+    {% set page_description = 'Kostenloser Live-Ticker für ' ~ sport_labels ~ '. Anlegen, Link teilen, fertig — ohne App, ohne Anmeldung.' %}
 
     <meta name="description" content="{{ page_description }}">
 
@@ -12,7 +33,7 @@
     <meta property="og:site_name" content="tickerly">
     <meta property="og:locale" content="de_DE">
     <meta property="og:url" content="{{ page_url }}">
-    <meta property="og:title" content="Tickerly – Live-Ticker für Amateursport">
+    <meta property="og:title" content="Tickerly – Kostenloser Live-Ticker für Amateursport">
     <meta property="og:description" content="{{ page_description }}">
     {% if site_card %}
         <meta property="og:image" content="{{ url('app_site_card') }}">
@@ -24,8 +45,10 @@
     {% endif %}
 
     <meta name="twitter:card" content="{{ site_card ? 'summary_large_image' : 'summary' }}">
-    <meta name="twitter:title" content="Tickerly – Live-Ticker für Amateursport">
+    <meta name="twitter:title" content="Tickerly – Kostenloser Live-Ticker für Amateursport">
     <meta name="twitter:description" content="{{ page_description }}">
+
+    {% set json_flags = constant('JSON_UNESCAPED_SLASHES') b-or constant('JSON_UNESCAPED_UNICODE') %}
 
     <script type="application/ld+json">
         {{ {
@@ -35,8 +58,61 @@
             'url': page_url,
             'description': page_description,
             'inLanguage': 'de-DE'
-        }|json_encode(constant('JSON_UNESCAPED_SLASHES') b-or constant('JSON_UNESCAPED_UNICODE'))|raw }}
+        }|json_encode(json_flags)|raw }}
     </script>
+
+    {# What the thing actually is: a free web app for tickering a game. #}
+    <script type="application/ld+json">
+        {{ {
+            '@context': 'https://schema.org',
+            '@type': 'WebApplication',
+            'name': 'tickerly',
+            'url': page_url,
+            'description': page_description,
+            'applicationCategory': 'SportsApplication',
+            'operatingSystem': 'Alle — läuft im Browser',
+            'inLanguage': 'de-DE',
+            'offers': {
+                '@type': 'Offer',
+                'price': '0',
+                'priceCurrency': 'EUR'
+            }
+        }|json_encode(json_flags)|raw }}
+    </script>
+
+    {# Mirrors the questions further down the page, word for word. #}
+    <script type="application/ld+json">
+        {{ {
+            '@context': 'https://schema.org',
+            '@type': 'FAQPage',
+            'mainEntity': faq|map(entry => {
+                '@type': 'Question',
+                'name': entry.question,
+                'acceptedAnswer': { '@type': 'Answer', 'text': entry.answer }
+            })
+        }|json_encode(json_flags)|raw }}
+    </script>
+
+    {% if upcoming_games or recent_games %}
+        {# The games the page links to, so a crawler reads them as fixtures
+           rather than as four anonymous cards. #}
+        <script type="application/ld+json">
+            {{ {
+                '@context': 'https://schema.org',
+                '@type': 'ItemList',
+                'itemListElement': (upcoming_games|merge(recent_games))|map(game => {
+                    '@type': 'SportsEvent',
+                    'name': game.home ~ ' : ' ~ game.away,
+                    'url': url('app_game_show', {'slug': game.slug}),
+                    'startDate': game.datetime|date('c'),
+                    'eventStatus': 'https://schema.org/EventScheduled',
+                    'location': { '@type': 'Place', 'name': game.location },
+                    'homeTeam': { '@type': 'SportsTeam', 'name': game.home },
+                    'awayTeam': { '@type': 'SportsTeam', 'name': game.away }
+                })
+            }|json_encode(json_flags)|raw }}
+        </script>
+    {% endif %}
 {% endblock %}
 
 {% block body %}
@@ -139,8 +215,8 @@
 
         <div class="mt-10 grid gap-4 sm:grid-cols-3">
             {% set features = [
-                { icon: '⚡️', title: 'Live in Echtzeit', text: 'Punkte und Ereignisse erscheinen sofort bei allen Zuschauern – ganz ohne Neuladen.' },
-                { icon: '📝', title: 'Kinderleicht tickern', text: 'Spielstand mit einem Tipp anpassen, Ereignisse in Sekunden hinzufügen.' },
+                { icon: '⚡️', title: 'Aktualisiert sich selbst', text: 'Die Spielseite holt sich den Stand jede Minute — niemand im Publikum muss neu laden.' },
+                { icon: '📝', title: 'Ein Tipp pro Ereignis', text: 'Die Buttons deiner Sportart schreiben den Ticker-Eintrag und den Punkt in einem Schritt.' },
                 { icon: '🔗', title: 'Teilen per Link', text: 'Ein Link genügt – Fans verfolgen das Spiel direkt im Browser, ohne Anmeldung.' }
             ] %}
             {% for f in features %}
@@ -149,6 +225,40 @@
                     <h3 class="mt-4 text-lg font-semibold text-ink-900">{{ f.title }}</h3>
                     <p class="mt-1.5 text-sm leading-relaxed text-ink-500">{{ f.text }}</p>
                 </div>
+            {% endfor %}
+        </div>
+    </section>
+
+    {# ------------------------------------------------------------- Sports #}
+    <section class="mt-20">
+        <h2 class="text-center text-3xl font-semibold tracking-tight text-ink-900">Für deinen Sport gemacht</h2>
+        <p class="mx-auto mt-3 max-w-xl text-center text-ink-500">
+            Die Sportart bestimmt, was du beim Tickern vor dir hast: die passenden Ereignisse,
+            und was ein Tipp zählt. Ein Dreier bringt drei Punkte, eine rote Karte keinen.
+        </p>
+
+        <ul class="mx-auto mt-8 flex max-w-2xl flex-wrap justify-center gap-3">
+            {% for sport in sports %}
+                <li class="card flex items-center gap-2.5 rounded-full px-5 py-2.5 text-sm font-medium text-ink-700">
+                    <span aria-hidden="true">{{ sport.icon }}</span> {{ sport.label }}
+                </li>
+            {% endfor %}
+            <li class="flex items-center gap-2.5 rounded-full border border-dashed border-black/15 px-5 py-2.5 text-sm font-medium text-ink-500">
+                <span aria-hidden="true">🏅</span> oder ganz offen
+            </li>
+        </ul>
+    </section>
+
+    {# ---------------------------------------------------------------- FAQ #}
+    <section class="mt-20">
+        <h2 class="text-center text-3xl font-semibold tracking-tight text-ink-900">Häufige Fragen</h2>
+
+        <div class="mx-auto mt-8 max-w-2xl space-y-3">
+            {% for entry in faq %}
+                <details class="card rounded-3xl px-6 py-4">
+                    <summary class="cursor-pointer list-none font-semibold text-ink-900">{{ entry.question }}</summary>
+                    <p class="mt-2.5 text-sm leading-relaxed text-ink-500">{{ entry.answer }}</p>
+                </details>
             {% endfor %}
         </div>
     </section>
