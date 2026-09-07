@@ -3,6 +3,7 @@
 namespace App\Tests\Controller;
 
 use App\Game\Infrastructure\GameCardRenderer;
+use Symfony\Component\DomCrawler\Crawler;
 use App\Tests\Support\FunctionalTestCase;
 
 /**
@@ -29,10 +30,68 @@ class LandingPageTest extends FunctionalTestCase
         $this->assertSame('website', $crawler->filter('meta[property="og:type"]')->attr('content'));
         $this->assertNotEmpty($crawler->filter('meta[property="og:title"]')->attr('content'));
 
-        $data = json_decode($crawler->filter('script[type="application/ld+json"]')->text(), true);
+        $types = $this->structuredData($crawler);
 
-        $this->assertSame('WebSite', $data['@type']);
-        $this->assertSame('de-DE', $data['inLanguage']);
+        $this->assertSame('de-DE', $types['WebSite']['inLanguage']);
+        $this->assertSame('SportsApplication', $types['WebApplication']['applicationCategory']);
+        $this->assertSame('0', $types['WebApplication']['offers']['price']);
+    }
+
+    public function testTheAnsweredQuestionsAreTheOnesOnThePage(): void
+    {
+        $crawler = $this->client->request('GET', '/');
+        $asked = $crawler->filter('details summary')->each(static fn (Crawler $node): string => $node->text());
+
+        $this->assertNotEmpty($asked);
+
+        // Marked-up answers that are not on the page are exactly what the
+        // FAQPage guidelines forbid, so both come from one list in the template.
+        $marked = array_map(
+            static fn (array $entry): string => $entry['name'],
+            $this->structuredData($crawler)['FAQPage']['mainEntity'],
+        );
+
+        $this->assertSame($asked, $marked);
+    }
+
+    public function testTheListedGamesAreMarkedUpAsFixtures(): void
+    {
+        $game = $this->createGame($this->createUser('owner@example.com'), 'markup-vs-fixture-2026-12-01');
+
+        $crawler = $this->client->request('GET', '/');
+        $events = $this->structuredData($crawler)['ItemList']['itemListElement'];
+
+        $this->assertContains($game->getHome() . ' : ' . $game->getAway(), array_column($events, 'name'));
+        $this->assertSame('Falcons', $events[0]['homeTeam']['name']);
+    }
+
+    public function testItNamesTheSportsItSupports(): void
+    {
+        $crawler = $this->client->request('GET', '/');
+        $text = $crawler->filter('body')->text();
+
+        // The reason anyone searching for "handball live ticker" would ever
+        // land here.
+        $this->assertStringContainsString('Handball', $text);
+        $this->assertStringContainsString('American Football', $text);
+    }
+
+    /**
+     * Every ld+json block on the page, keyed by its @type — which also asserts
+     * that each one is valid JSON.
+     *
+     * @return array<string, array<string, mixed>>
+     */
+    private function structuredData(Crawler $crawler): array
+    {
+        $blocks = [];
+
+        foreach ($crawler->filter('script[type="application/ld+json"]') as $node) {
+            $data = json_decode($node->textContent, true, flags: JSON_THROW_ON_ERROR);
+            $blocks[$data['@type']] = $data;
+        }
+
+        return $blocks;
     }
 
     public function testItLinksToTheGamesItKnowsAbout(): void
