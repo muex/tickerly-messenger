@@ -27,17 +27,12 @@ class GameQueryController extends AbstractController
     {
         $this->denyUnlessVisible($game);
 
-        $sport = $sportCatalog->get($game->getSport());
-
         return $this->render('game/show.html.twig', [
             'game' => $game,
-            'sport' => $sport,
+            'sport' => $sportCatalog->get($game->getSport()),
             // Key to symbol, so the ticker can mark an entry without the
             // template walking the event list for every row.
-            'event_icons' => array_column(array_map(
-                static fn ($event): array => ['key' => $event->key, 'icon' => $event->icon],
-                $sport->events(),
-            ), 'icon', 'key'),
+            'event_icons' => $sportCatalog->icons($game->getSport()),
             // Null where the server cannot draw the card, so the page leaves the
             // image tags out rather than pointing a crawler at a broken URL.
             'card_version' => $cardRenderer->isAvailable() ? $cardRenderer->versionFor($game) : null,

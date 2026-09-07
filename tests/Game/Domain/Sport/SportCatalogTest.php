@@ -45,6 +45,16 @@ class SportCatalogTest extends KernelTestCase
         $this->assertNull($catalog->eventFor('offen', 'tor'));
     }
 
+    public function testTheSymbolLookupIsTheSameForPageAndProjection(): void
+    {
+        $icons = $this->catalog()->icons('fussball');
+
+        $this->assertSame('🟥', $icons['rote-karte']);
+        // A free-text entry has no type, and an unknown one no symbol.
+        $this->assertArrayNotHasKey('', $icons);
+        $this->assertSame([], $this->catalog()->icons('offen'));
+    }
+
     public function testNoSportShipsADuplicateEventKey(): void
     {
         foreach ($this->catalog()->all() as $sport) {

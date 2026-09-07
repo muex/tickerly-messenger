@@ -68,6 +68,24 @@ class SportCatalog
     }
 
     /**
+     * Event key to symbol for one sport. Both the page and the projection mark
+     * their entries with this, so the lookup is built once here rather than
+     * twice in two shapes.
+     *
+     * @return array<string, string>
+     */
+    public function icons(?string $sportKey): array
+    {
+        $icons = [];
+
+        foreach ($this->get($sportKey)->events() as $event) {
+            $icons[$event->key] = $event->icon;
+        }
+
+        return $icons;
+    }
+
+    /**
      * Labels to keys, the shape a ChoiceType wants.
      *
      * @return array<string, string>

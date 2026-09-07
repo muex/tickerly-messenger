@@ -150,13 +150,7 @@ class GameProjector
      */
     private function toEventReadModel(Game $game): array
     {
-        $sport = $this->sportCatalog->get($game->getSport());
-        $icons = [];
-
-        foreach ($sport->events() as $sportEvent) {
-            $icons[$sportEvent->key] = $sportEvent->icon;
-        }
-
+        $icons = $this->sportCatalog->icons($game->getSport());
         $events = [];
 
         foreach ($game->getGameEvents() as $event) {
