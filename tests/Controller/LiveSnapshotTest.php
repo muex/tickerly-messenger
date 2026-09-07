@@ -2,6 +2,7 @@
 
 namespace App\Tests\Controller;
 
+use App\Game\Infrastructure\GameProjector;
 use App\Tests\Support\FunctionalTestCase;
 
 /**
@@ -91,7 +92,7 @@ class LiveSnapshotTest extends FunctionalTestCase
         $toggle = $crawler->filter('#autorefresh-toggle');
 
         $this->assertCount(1, $toggle);
-        $this->assertSame('/games/' . $game->getSlug() . '.json', $toggle->attr('data-snapshot'));
+        $this->assertSame('/ticker/' . $game->getSlug() . '.json', $toggle->attr('data-snapshot'));
 
         // The owner is the one typing into the event form; nothing may reload or
         // rewrite the page under them.
@@ -101,8 +102,24 @@ class LiveSnapshotTest extends FunctionalTestCase
         $this->assertCount(0, $crawler->filter('#autorefresh-toggle'));
     }
 
+    /**
+     * The guard for the outage this path was moved because of: a directory in
+     * the web root shadows the route of the same name, and Apache and Symfony
+     * then redirect at each other forever.
+     */
+    public function testTheSnapshotDirectoryDoesNotShadowARoute(): void
+    {
+        $firstSegments = [];
+
+        foreach (static::getContainer()->get('router')->getRouteCollection() as $route) {
+            $firstSegments[] = explode('/', ltrim($route->getPath(), '/'))[0];
+        }
+
+        $this->assertNotContains(GameProjector::DIRECTORY, $firstSegments);
+    }
+
     private function pathFor(string $slug): string
     {
-        return static::getContainer()->getParameter('kernel.cache_dir') . '/public/games/' . $slug . '.json';
+        return static::getContainer()->getParameter('kernel.cache_dir') . '/public/' . GameProjector::DIRECTORY . '/' . $slug . '.json';
     }
 }

@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Game;
 use App\Game\Domain\Sport\SportCatalog;
 use App\Game\Infrastructure\GameCardRenderer;
+use App\Game\Infrastructure\GameProjector;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -33,6 +34,9 @@ class GameQueryController extends AbstractController
             // Key to symbol, so the ticker can mark an entry without the
             // template walking the event list for every row.
             'event_icons' => $sportCatalog->icons($game->getSport()),
+            // Built from the projector's own constant so the page cannot drift
+            // away from where the files are actually written.
+            'snapshot_url' => sprintf('/%s/%s.json', GameProjector::DIRECTORY, $game->getSlug()),
             // Null where the server cannot draw the card, so the page leaves the
             // image tags out rather than pointing a crawler at a broken URL.
             'card_version' => $cardRenderer->isAvailable() ? $cardRenderer->versionFor($game) : null,

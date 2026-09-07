@@ -3,6 +3,7 @@
 namespace App\Tests\Controller;
 
 use App\Entity\Game;
+use App\Game\Infrastructure\GameProjector;
 use App\Tests\Support\FunctionalTestCase;
 use Symfony\Component\DomCrawler\Crawler;
 
@@ -124,7 +125,7 @@ class SportEventsTest extends FunctionalTestCase
         $owner = $this->createUser('owner@example.com');
         $game = $this->createGame($owner, 'symbol-vs-snapshot-2026-12-01', sport: 'fussball');
         $this->written[] = $snapshot = static::getContainer()->getParameter('kernel.cache_dir')
-            . '/public/games/' . $game->getSlug() . '.json';
+            . '/public/' . GameProjector::DIRECTORY . '/' . $game->getSlug() . '.json';
 
         $this->client->loginUser($owner);
         $this->client->request('POST', '/games/' . $game->getSlug() . '/record', [
