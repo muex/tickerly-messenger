@@ -37,7 +37,7 @@ flowchart LR
     H -->|persist| DB[(MariaDB)]
     H -->|GameStateChanged| EB[event.bus]
     EB --> P[GameProjector]
-    P -->|writes| J["public/*.json<br>public/games/&lt;slug&gt;.json"]
+    P -->|writes| J["public/*.json<br>public/ticker/&lt;slug&gt;.json"]
     B[Browser] -->|fetch / poll| J
 ```
 
@@ -51,10 +51,13 @@ flowchart LR
   happens next.
 - **Read side.** `GameStateChangedHandler` runs `GameProjector`, which rebuilds
   `public/nextgames.json`, `public/lastgames.json` and the changed game's own
-  snapshot in `public/games/<slug>.json`. The files are written to a temp name
+  snapshot in `public/ticker/<slug>.json`. The files are written to a temp name
   and renamed, so a browser fetching them never sees a half-written file. The
   index page is therefore plain HTML plus two static JSON fetches, and the
   database is never queried to render it.
+  The directory is `ticker/`, not `games/`: a directory in the web root shadows
+  the route of the same name, and Apache's DirectorySlash and Symfony's
+  canonical redirect then bounce off each other forever.
 - **Live ticker.** The game page polls its snapshot once a minute for spectators,
   so an audience of any size costs the web server static files instead of a PHP
   request each. A snapshot lives in the web root, where it is served before any

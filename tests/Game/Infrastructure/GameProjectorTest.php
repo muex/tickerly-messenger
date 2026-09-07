@@ -85,7 +85,7 @@ class GameProjectorTest extends TestCase
 
     public function testARebuildDropsSnapshotsThatNoLongerBelongToAGame(): void
     {
-        mkdir($this->webRoot . '/games');
+        mkdir($this->webRoot . '/' . GameProjector::DIRECTORY);
         file_put_contents($this->pathFor('gone-vs-forgotten-2020-01-01'), '{}');
 
         $this->projector($this->game())->projectAll();
@@ -118,7 +118,7 @@ class GameProjectorTest extends TestCase
 
     private function pathFor(string $slug): string
     {
-        return $this->webRoot . '/games/' . $slug . '.json';
+        return $this->webRoot . '/' . GameProjector::DIRECTORY . '/' . $slug . '.json';
     }
 
     /**

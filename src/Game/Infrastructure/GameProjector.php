@@ -22,7 +22,13 @@ use Symfony\Component\DependencyInjection\Attribute\Autowire;
  */
 class GameProjector
 {
-    private const GAME_DIRECTORY = '/games';
+    /**
+     * Deliberately not "games": a directory in the web root shadows the route
+     * of the same name. Apache's DirectorySlash answers /games with a redirect
+     * to /games/, Symfony redirects that back to the canonical /games, and the
+     * two bounce off each other until the browser gives up.
+     */
+    public const DIRECTORY = 'ticker';
 
     public function __construct(
         private GameRepository $gameRepository,
@@ -60,7 +66,7 @@ class GameProjector
             $current[$game->getSlug() . '.json'] = true;
         }
 
-        foreach (glob($this->webRoot . self::GAME_DIRECTORY . '/*.json') ?: [] as $file) {
+        foreach (glob($this->webRoot . '/' . self::DIRECTORY . '/*.json') ?: [] as $file) {
             if (!isset($current[basename($file)])) {
                 unlink($file);
             }
@@ -97,7 +103,7 @@ class GameProjector
             return;
         }
 
-        $this->writeJson(self::GAME_DIRECTORY . '/' . $slug . '.json', [
+        $this->writeJson('/' . self::DIRECTORY . '/' . $slug . '.json', [
             'slug' => $slug,
             'sport' => $game->getSport(),
             'home' => $game->getHome(),
@@ -121,7 +127,7 @@ class GameProjector
             return null;
         }
 
-        return $this->webRoot . self::GAME_DIRECTORY . '/' . $slug . '.json';
+        return $this->webRoot . '/' . self::DIRECTORY . '/' . $slug . '.json';
     }
 
     /**

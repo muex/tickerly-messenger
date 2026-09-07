@@ -83,7 +83,7 @@ jobs:
             --exclude='.env.*.local' \
             --exclude='public/nextgames.json' \
             --exclude='public/lastgames.json' \
-            --exclude='public/games/' \
+            --exclude='public/ticker/' \
             ./ "${{ vars.SSH_USER }}@${{ vars.SSH_HOST }}:${{ vars.DEPLOY_PATH }}/"
 
       # Bring the prod schema up to date before the new code serves traffic.

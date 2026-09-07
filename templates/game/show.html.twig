@@ -101,7 +101,7 @@
            page under someone typing into the event form below. Hidden until the
            script takes over, so nobody is left with a switch that does nothing. #}
         {% if not is_owner and not is_finished %}
-            <button class="btn-ghost" type="button" id="autorefresh-toggle" aria-pressed="true" data-snapshot="/games/{{ game.slug }}.json" hidden>
+            <button class="btn-ghost" type="button" id="autorefresh-toggle" aria-pressed="true" data-snapshot="{{ snapshot_url }}" hidden>
                 <span aria-hidden="true">⏱</span> <span id="autorefresh-label">Automatisch aktualisieren</span>
             </button>
 
