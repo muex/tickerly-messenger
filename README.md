@@ -189,5 +189,11 @@ and what is still open, with the reasoning behind the bigger decisions.
 
 ## License
 
-The source is public to read, but `composer.json` declares the project
-proprietary — there is no open-source license granting reuse.
+[GNU AGPL-3.0-or-later](LICENSE). Use it, change it, run it — but if you pass it
+on **or run a changed version as a website**, the source of that version has to
+be available under the same license, with the copyright notice intact. Section 13
+is the reason this license and not the plain GPL: a ticker is something you host,
+and hosting is where the GPL would have let a fork disappear.
+
+Copyright © 2026 André Müller. The name *tickerly* and the branding are not part
+of the license — a fork needs its own name.

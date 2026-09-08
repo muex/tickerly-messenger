@@ -53,6 +53,15 @@
         <main class="mx-auto w-full {% block main_width %}max-w-3xl{% endblock %} px-4 py-10">
             {% block body %}{% endblock %}
         </main>
+
+        {# AGPL §13: whoever uses this over the network has to be able to get at
+           the source, so the link belongs on the page and not only in the
+           README. #}
+        <footer class="mx-auto w-full max-w-3xl px-4 pb-10 text-center text-xs text-ink-400">
+            © {{ 'now'|date('Y') }} André Müller ·
+            <a class="underline decoration-black/20 underline-offset-2 transition hover:text-ink-600"
+               href="https://github.com/muex/tickerly-messenger">Quellcode (AGPL-3.0)</a>
+        </footer>
         {% block scripts %}
 
         {% endblock %}
