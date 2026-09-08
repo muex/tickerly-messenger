@@ -114,6 +114,15 @@ class LandingPageTest extends FunctionalTestCase
         $this->assertCount(0, $crawler->filter('a[href="/games/' . $game->getSlug() . '"]'));
     }
 
+    public function testEveryPageOffersTheSource(): void
+    {
+        $crawler = $this->client->request('GET', '/');
+
+        // AGPL §13: anyone using this over the network has to be able to reach
+        // the source. The link sits in the layout, so it is on every page.
+        $this->assertCount(1, $crawler->filter('footer a[href="https://github.com/muex/tickerly-messenger"]'));
+    }
+
     public function testTheSiteCardIsDelivered(): void
     {
         if (!static::getContainer()->get(GameCardRenderer::class)->isAvailable()) {
