@@ -13,7 +13,7 @@ final class CreateGameEvent implements Command
 {
     public function __construct(
         private Uuid $gameId,
-        private string $timecode,
+        private ?string $timecode,
         private string $message,
     ) {}
 
@@ -22,7 +22,7 @@ final class CreateGameEvent implements Command
         return $this->gameId;
     }
 
-    public function getTimecode(): string
+    public function getTimecode(): ?string
     {
         return $this->timecode;
     }

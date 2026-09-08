@@ -17,6 +17,7 @@ final class RecordSportEvent implements Command
         private string $eventKey,
         private Side $side,
         private ?string $timecode = null,
+        private ?string $note = null,
     ) {}
 
     public function getGameId(): Uuid
@@ -37,5 +38,11 @@ final class RecordSportEvent implements Command
     public function getTimecode(): ?string
     {
         return $this->timecode;
+    }
+
+    /** What the owner typed alongside it, if anything. */
+    public function getNote(): ?string
+    {
+        return $this->note;
     }
 }

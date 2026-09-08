@@ -3,7 +3,6 @@
 namespace App\Controller;
 
 use App\Entity\Game;
-use App\Form\GameEventType;
 use App\Form\GameType;
 use App\Game\Application\Command\CreateGame;
 use App\Game\Application\Command\CreateGameEvent;
@@ -141,33 +140,32 @@ class GameCommandController extends AbstractController
      * because the owner is looking at the state they are flipping.
      */
     /**
-     * One tap on a sport's button. The form posts which event and which side;
-     * the handler refuses anything that is not an event of this game's sport,
-     * so the points a request can award are not the caller's to choose.
+     * The one row the owner types into: minute, what happened, a note. Picking
+     * an event records it with its points; picking nothing records the note on
+     * its own. The handler refuses anything that is not an event of this game's
+     * sport, so the points a request can award are not the caller's to choose.
      */
     #[Route('/{slug}/record', name: 'app_game_record', methods: ['POST'])]
     #[IsGranted('GAME_SCORE', subject: 'game')]
     #[IsCsrfTokenValid('score')]
     public function record(Request $request, Game $game, CommandBus $commandBus): Response
     {
-        // "tor:home" — the pressed button is the only one that submits, so it
-        // carries what happened and which team it belongs to in one value.
+        $timecode = $this->trimmed($request, 'timecode');
+        $note = $this->trimmed($request, 'note');
+
+        // "tor:home" — one value carries what happened and which team it
+        // belongs to, so the row stays three fields wide.
         [$eventKey, $sideKey] = array_pad(explode(':', (string) $request->request->get('event'), 2), 2, '');
         $side = Side::tryFrom($sideKey);
 
-        if ($side === null || $eventKey === '') {
-            throw $this->createNotFoundException('Kein Ereignis angegeben.');
+        if ($eventKey !== '' && $side !== null) {
+            $commandBus->dispatch(new RecordSportEvent($game->getId(), $eventKey, $side, $timecode, $note));
+        } elseif ($note !== null) {
+            $commandBus->dispatch(new CreateGameEvent($game->getId(), $timecode, $note));
         }
 
-        $timecode = trim((string) $request->request->get('timecode'));
-
-        $commandBus->dispatch(new RecordSportEvent(
-            $game->getId(),
-            $eventKey,
-            $side,
-            $timecode === '' ? null : $timecode,
-        ));
-
+        // Nothing chosen and nothing typed: nothing happened. The page comes
+        // back as it was rather than complaining about an empty form.
         return $this->redirectToRoute('app_game_show', ['slug' => $game->getSlug()]);
     }
 
@@ -194,38 +192,10 @@ class GameCommandController extends AbstractController
         return $this->redirectToRoute('app_game_index', [], Response::HTTP_SEE_OTHER);
     }
 
-    #[Route('/{slug}/events', name: 'app_event_new', methods: ['POST'])]
-    #[IsGranted('GAME_SCORE', subject: 'game')]
-    public function gameEventNew(Request $request, Game $game, CommandBus $commandBus): Response
+    private function trimmed(Request $request, string $field): ?string
     {
-        $form = $this->createForm(GameEventType::class);
-        $form->handleRequest($request);
+        $value = trim((string) $request->request->get($field));
 
-        if ($form->isSubmitted() && $form->isValid()) {
-            $gameevent = $form->getData();
-
-            $gameEventCommand = new CreateGameEvent(
-                $game->getId(),
-                $gameevent->getTimecode(),
-                $gameevent->getMessage(),
-            );
-            $commandBus->dispatch($gameEventCommand);
-
-            return $this->redirectToRoute('app_game_show', ['slug' => $game->getSlug()]);
-        }
-
-        return $this->render('game/gameevent_form_error.html.twig', [
-            'game' => $game,
-            'form' => $form->createView(),
-        ]);
-    }
-
-    public function gameEventForm(Game $game): Response
-    {
-        $form = $this->createForm(GameEventType::class);
-        return $this->render('game/_game_event_form.html.twig', [
-            'game' => $game,
-            'form' => $form->createView(),
-        ]);
+        return $value === '' ? null : $value;
     }
 }

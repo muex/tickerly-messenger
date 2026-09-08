@@ -86,7 +86,7 @@ class SportEventsTest extends FunctionalTestCase
         ]);
     }
 
-    public function testTheButtonsAreTheSportsOwnAndReplaceThePlusControls(): void
+    public function testTheEventsAreOfferedPerTeamAndReplaceThePlusControls(): void
     {
         $owner = $this->createUser('owner@example.com');
         $game = $this->createGame($owner, 'buttons-vs-sport-2026-12-01', sport: 'basketball');
@@ -94,19 +94,20 @@ class SportEventsTest extends FunctionalTestCase
         $this->client->loginUser($owner);
         $crawler = $this->client->request('GET', '/games/' . $game->getSlug());
 
-        $this->assertNotEmpty($this->buttonValues($crawler, 'dreier:home'));
-        $this->assertNotEmpty($this->buttonValues($crawler, 'freiwurf:away'));
+        // Grouped by team, so one select carries what happened and for whom.
+        $this->assertSame(
+            ['Falcons', 'Sharks'],
+            $crawler->filter('#record-event optgroup')->extract(['label']),
+        );
+        $this->assertCount(1, $crawler->filter('#record-event option[value="dreier:home"]'));
+        $this->assertCount(1, $crawler->filter('#record-event option[value="freiwurf:away"]'));
 
-        // The plus is the event grid now; the minus stays as the way back.
-        $this->assertCount(0, $crawler->filter('button')->reduce(
-            static fn (Crawler $node): bool => trim($node->text()) === 'H+',
-        ));
-        $this->assertCount(1, $crawler->filter('button')->reduce(
-            static fn (Crawler $node): bool => trim($node->text()) === 'H−',
-        ));
+        // The plus is the select now; the minus stays as the way back.
+        $this->assertCount(0, $this->button($crawler, 'H+'));
+        $this->assertCount(1, $this->button($crawler, 'H−'));
     }
 
-    public function testAnOpenGameKeepsThePlainScoreboard(): void
+    public function testAnOpenGameGetsThePlainScoreboardAndNothingButANote(): void
     {
         $owner = $this->createUser('owner@example.com');
         $game = $this->createGame($owner, 'offen-vs-plain-2026-12-01');
@@ -114,10 +115,44 @@ class SportEventsTest extends FunctionalTestCase
         $this->client->loginUser($owner);
         $crawler = $this->client->request('GET', '/games/' . $game->getSlug());
 
-        $this->assertCount(1, $crawler->filter('button')->reduce(
-            static fn (Crawler $node): bool => trim($node->text()) === 'H+',
-        ));
-        $this->assertCount(0, $crawler->filter('form[action$="/record"]'));
+        $this->assertCount(1, $this->button($crawler, 'H+'));
+        $this->assertCount(0, $crawler->filter('#record-event optgroup'));
+        $this->assertSame([''], $crawler->filter('#record-event option')->extract(['value']));
+    }
+
+    public function testANoteRidesAlongWithTheEvent(): void
+    {
+        $owner = $this->createUser('owner@example.com');
+        $game = $this->createGame($owner, 'note-vs-event-2026-12-01', sport: 'fussball');
+
+        $this->client->loginUser($owner);
+        $crawler = $this->client->request('GET', '/games/' . $game->getSlug());
+        $this->client->submit($crawler->selectButton('Eintragen')->form([
+            'timecode' => '67',
+            'event' => 'tor:home',
+            'note' => 'Nr. 8, aus 20 Metern',
+        ]));
+
+        $game = $this->reload($game);
+
+        $this->assertSame(1, $game->getHomepoints());
+        $this->assertSame('Tor für Falcons — Nr. 8, aus 20 Metern', $game->getGameEvents()->first()->getMessage());
+    }
+
+    public function testAnEmptyRowRecordsNothing(): void
+    {
+        $owner = $this->createUser('owner@example.com');
+        $game = $this->createGame($owner, 'empty-vs-nothing-2026-12-01', sport: 'fussball');
+
+        $this->client->loginUser($owner);
+        $crawler = $this->client->request('GET', '/games/' . $game->getSlug());
+        $this->client->submit($crawler->selectButton('Eintragen')->form([
+            'event' => '',
+            'note' => '',
+        ]));
+
+        $this->assertResponseRedirects('/games/' . $game->getSlug());
+        $this->assertCount(0, $this->reload($game)->getGameEvents());
     }
 
     public function testTheSnapshotCarriesTheSportAndTheSymbols(): void
@@ -151,9 +186,11 @@ class SportEventsTest extends FunctionalTestCase
             ->attr('value');
     }
 
-    private function buttonValues(Crawler $crawler, string $value): array
+    private function button(Crawler $crawler, string $label): Crawler
     {
-        return $crawler->filter(sprintf('button[name="event"][value="%s"]', $value))->extract(['value']);
+        return $crawler->filter('button')->reduce(
+            static fn (Crawler $node): bool => trim($node->text()) === $label,
+        );
     }
 
     private function reload(Game $game): Game

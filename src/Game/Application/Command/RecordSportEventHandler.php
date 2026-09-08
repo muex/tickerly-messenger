@@ -47,7 +47,7 @@ class RecordSportEventHandler
         $entry = (new GameEvent())
             ->setType($sportEvent->key)
             ->setTimecode($command->getTimecode())
-            ->setMessage($this->messageFor($game, $command->getSide(), $sportEvent));
+            ->setMessage($this->messageFor($game, $command->getSide(), $sportEvent, $command->getNote()));
 
         // The association cascades persist, so saving the game saves the entry.
         $game->addGameEvent($entry);
@@ -71,10 +71,13 @@ class RecordSportEventHandler
         $game->setAwaypoints($game->getAwaypoints() + $points);
     }
 
-    private function messageFor(Game $game, Side $side, SportEvent $sportEvent): string
+    private function messageFor(Game $game, Side $side, SportEvent $sportEvent, ?string $note): string
     {
         $team = $side === Side::Home ? $game->getHome() : $game->getAway();
+        $message = sprintf('%s für %s', $sportEvent->label, $team);
 
-        return sprintf('%s für %s', $sportEvent->label, $team);
+        // "Tor für Falcons — Nr. 8, aus 20 Metern": the event says what it was
+        // worth, the note says what made it worth watching.
+        return $note === null ? $message : $message . ' — ' . $note;
     }
 }

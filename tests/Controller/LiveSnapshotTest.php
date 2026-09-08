@@ -54,11 +54,10 @@ class LiveSnapshotTest extends FunctionalTestCase
         $this->client->loginUser($owner);
         $crawler = $this->client->request('GET', '/games/' . $game->getSlug());
 
-        $form = $crawler->selectButton('Speichern')->form([
-            'game_event[timecode]' => '67',
-            'game_event[message]' => 'Gelbe Karte',
-        ]);
-        $this->client->submit($form);
+        $this->client->submit($crawler->selectButton('Eintragen')->form([
+            'timecode' => '67',
+            'note' => 'Gelbe Karte',
+        ]));
 
         $written = json_decode(file_get_contents($snapshot), true);
 

@@ -28,7 +28,7 @@ class FinishGameTest extends FunctionalTestCase
         $this->assertTrue($this->reload($game)->isFinished());
         $this->assertStringContainsString('Endstand', $crawler->filter('#final')->text());
         $this->assertCount(0, $this->button($crawler, 'H+'));
-        $this->assertCount(0, $crawler->filter('form[action$="/events"]'));
+        $this->assertCount(0, $crawler->filter('form[action$="/record"]'));
     }
 
     public function testAFinishedGameRefusesPointsEvenFromItsOwner(): void
@@ -58,7 +58,15 @@ class FinishGameTest extends FunctionalTestCase
         $game = $this->createGame($owner, 'silent-vs-ticker-2026-12-01', finishedAt: new \DateTimeImmutable());
 
         $this->client->loginUser($owner);
-        $this->client->request('POST', '/games/' . $game->getSlug() . '/events');
+        $running = $this->createGame($owner, 'still-vs-open-2026-12-01');
+        $token = $this->client->request('GET', '/games/' . $running->getSlug())
+            ->filter('form[action$="/record"] input[name="_token"]')
+            ->attr('value');
+
+        $this->client->request('POST', '/games/' . $game->getSlug() . '/record', [
+            '_token' => $token,
+            'note' => 'Nachtrag',
+        ]);
 
         $this->assertResponseStatusCodeSame(403);
     }
@@ -76,7 +84,7 @@ class FinishGameTest extends FunctionalTestCase
 
         $this->assertFalse($this->reload($game)->isFinished());
         $this->assertCount(1, $this->button($crawler, 'H+'));
-        $this->assertCount(1, $crawler->filter('form[action$="/events"]'));
+        $this->assertCount(1, $crawler->filter('form[action$="/record"]'));
     }
 
     public function testNobodyElseCanEndSomeoneElsesGame(): void
