@@ -24,9 +24,11 @@ final class Football implements Sport
     public function events(): array
     {
         return [
+            // No "Eigentor": the entry is recorded for the team the point goes
+            // to, so an own goal is a Tor for the other side with a note saying
+            // who put it in. Listed here it would credit the wrong team.
             new SportEvent('tor', 'Tor', '⚽', 1),
             new SportEvent('elfmeter-tor', 'Elfmeter', '🥅', 1),
-            new SportEvent('eigentor', 'Eigentor', '🙈', 1),
             new SportEvent('elfmeter-verschossen', 'Elfmeter verschossen', '❌'),
             new SportEvent('gelbe-karte', 'Gelbe Karte', '🟨'),
             new SportEvent('gelb-rote-karte', 'Gelb-Rot', '🟨🟥'),

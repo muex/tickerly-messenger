@@ -117,42 +117,43 @@
         <input id="share-fallback" class="hidden w-full rounded-full border border-black/10 bg-white px-4 py-2 text-sm text-ink-700 sm:w-80" type="text" readonly value="{{ share_url }}" aria-label="Link zum Spiel">
     </div>
 
-    {% if is_owner and not is_finished and has_events %}
-        {# One form, many submit buttons: the minute is typed once and travels
-           with whichever event is tapped. #}
-        <form class="card mb-6 rounded-3xl p-6" method="post" action="{{ path('app_game_record', {'slug': game.slug}) }}">
+    {% if is_owner and not is_finished %}
+        {# One row for everything the owner types: minute, what happened, and a
+           note. The team sits in the select rather than in a fourth field. #}
+        <form class="card mb-6 rounded-3xl p-5" method="post" action="{{ path('app_game_record', {'slug': game.slug}) }}">
             <input type="hidden" name="_token" value="{{ csrf_token('score') }}">
 
-            <div class="mb-5 flex items-center gap-3">
-                <label class="text-sm font-medium text-ink-600" for="record-timecode">Minute</label>
-                <input class="w-24 rounded-full border border-black/10 bg-white px-4 py-2 text-sm text-ink-700" type="text" id="record-timecode" name="timecode" inputmode="numeric" placeholder="67'">
-            </div>
+            <div class="flex flex-col gap-2.5 sm:flex-row sm:items-center">
+                <label class="sr-only" for="record-timecode">Minute</label>
+                <input class="w-full rounded-full border border-black/10 bg-white px-4 py-2.5 text-sm text-ink-700 sm:w-24 sm:shrink-0" type="text" id="record-timecode" name="timecode" inputmode="numeric" placeholder="67'">
 
-            <div class="grid gap-5 sm:grid-cols-2">
-                {% for side, team in {'home': game.home, 'away': game.away} %}
-                    <div>
-                        <p class="mb-2 text-sm font-semibold text-ink-700">{{ team }}</p>
-                        <div class="flex flex-wrap gap-2">
-                            {% for event in sport.events %}
-                                {# The button that was pressed is the only one
-                                   that submits its value, so it carries both
-                                   what happened and to whom. #}
-                                <button class="inline-flex items-center gap-1.5 rounded-full border border-black/10 bg-white px-3.5 py-2 text-sm font-medium text-ink-700 transition hover:bg-black/5 active:scale-95" name="event" value="{{ event.key }}:{{ side }}">
-                                    <span aria-hidden="true">{{ event.icon }}</span>
-                                    {{ event.label }}{% if event.points %} <span class="text-ink-400">+{{ event.points }}</span>{% endif %}
-                                </button>
-                            {% endfor %}
-                        </div>
-                    </div>
-                {% endfor %}
+                <label class="sr-only" for="record-event">Ereignis</label>
+                <select class="w-full rounded-full border border-black/10 bg-white px-4 py-2.5 text-sm text-ink-700 sm:w-72 sm:shrink-0" id="record-event" name="event">
+                    {# First, and therefore the default: pressing Eintragen
+                       without choosing must not score a goal for the home side.
+                       It is also the only entry when the game is "offen", so a
+                       plain note needs no special case anywhere. #}
+                    <option value="">📝 Nur Notiz</option>
+                    {% if has_events %}
+                        {% for side, team in {'home': game.home, 'away': game.away} %}
+                            <optgroup label="{{ team }}">
+                                {% for event in sport.events %}
+                                    {# The team is repeated in the option itself:
+                                       a closed select shows the option, never
+                                       the group it came from. #}
+                                    <option value="{{ event.key }}:{{ side }}">{{ event.icon }} {{ event.label }}{% if event.points %} +{{ event.points }}{% endif %} · {{ team }}</option>
+                                {% endfor %}
+                            </optgroup>
+                        {% endfor %}
+                    {% endif %}
+                </select>
+
+                <label class="sr-only" for="record-note">Notiz</label>
+                <input class="w-full min-w-0 flex-1 rounded-full border border-black/10 bg-white px-4 py-2.5 text-sm text-ink-700" type="text" id="record-note" name="note" placeholder="Notiz (optional)" maxlength="255">
+
+                <button class="btn-primary shrink-0">Eintragen</button>
             </div>
         </form>
-    {% endif %}
-
-    {% if is_owner and not is_finished %}
-        <div class="card mb-6 rounded-3xl p-6">
-            {{ render(controller('App\\Controller\\GameCommandController::gameEventForm', {'slug': game.slug})) }}
-        </div>
     {% endif %}
 
     {# Rebuilt from the snapshot as the ticker grows, so it carries no live

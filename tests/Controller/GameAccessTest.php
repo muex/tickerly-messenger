@@ -32,12 +32,23 @@ class GameAccessTest extends FunctionalTestCase
         $this->assertResponseIsSuccessful();
     }
 
-    public function testAStrangerCannotPostEventsToSomeoneElsesGame(): void
+    public function testAStrangerCannotPostEntriesToSomeoneElsesGame(): void
     {
         $game = $this->createGame($this->createUser('owner@example.com'), 'events-vs-stranger-2026-12-01');
+        $stranger = $this->createUser('stranger@example.com');
+        $own = $this->createGame($stranger, 'stranger-vs-entry-2026-12-01');
 
-        $this->client->loginUser($this->createUser('stranger@example.com'));
-        $this->client->request('POST', '/games/' . $game->getSlug() . '/events');
+        // The token belongs to the session, so it comes off a page this browser
+        // was served — otherwise the CSRF check answers before the voter does.
+        $this->client->loginUser($stranger);
+        $token = $this->client->request('GET', '/games/' . $own->getSlug())
+            ->filter('form[action$="/record"] input[name="_token"]')
+            ->attr('value');
+
+        $this->client->request('POST', '/games/' . $game->getSlug() . '/record', [
+            '_token' => $token,
+            'note' => 'Nicht mein Spiel',
+        ]);
 
         $this->assertResponseStatusCodeSame(403);
     }

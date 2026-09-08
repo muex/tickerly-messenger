@@ -20,8 +20,9 @@ The UI is in German. Running at [tickerly.de](https://tickerly.de).
   decides which buttons the owner gets and what a tap is worth: a three-pointer
   is worth three, a red card nothing. Each entry carries the symbol of what
   happened.
-- **Ticker controls** — the sport's own events in one tap, timestamped free-text
-  entries for everything else, and a minus on each side to take a mistap back.
+- **Ticker controls** — one row: minute, what happened, a note. The event list
+  is the sport's own, grouped by team; picking nothing records the note on its
+  own. A minus on each side takes a mistap back.
 - **Admin area** — overview of users and games, and activating or deactivating
   either. A deactivated user keeps their data but can no longer sign in; a
   deactivated game disappears from the public lists.
